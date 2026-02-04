@@ -131,6 +131,44 @@ When building features, verify:
 - [ ] User can export/backup their data
 - [ ] No cloud service is required for core functionality
 
+## Git Workflow
+
+### Branch Strategy
+
+- Create a new branch for each speckit feature: `###-feature-name` (e.g., `001-url-ingestion`)
+- Branch from `main` for new features
+
+### Commit Cadence
+
+1. **After each speckit step**:
+   - `/speckit.specify` → commit spec.md
+   - `/speckit.clarify` → commit updated spec.md
+   - `/speckit.plan` → commit plan.md, research.md, data-model.md, contracts/, quickstart.md
+   - `/speckit.tasks` → commit tasks.md
+
+2. **During implementation**:
+   - Commit after completing each task in tasks.md
+   - Commit after completing each phase
+
+3. **Pull Requests**:
+   - Create PR at the end of each phase in tasks.md
+   - PR into `main` when feature is complete
+
+### Commit Message Format
+
+```bash
+# Speckit artifacts
+docs: add feature specification for <feature>
+docs: add implementation plan for <feature>
+docs: add implementation tasks for <feature>
+
+# Implementation
+feat: implement <component/functionality>
+fix: resolve <issue>
+refactor: <description>
+test: add tests for <component>
+```
+
 ## Recent Changes
 
 - 002-rust-tauri-refactor: Refactoring Python backend to Rust with Tauri v2
