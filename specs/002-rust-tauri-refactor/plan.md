@@ -86,4 +86,4 @@ pyproject.toml              # DELETE after Rust works
 - [x] data-model.md - Entity definitions complete
 - [x] contracts/tauri-commands.ts - TypeScript types for frontend
 - [x] quickstart.md - Usage examples
-- [ ] tasks.md - Created via `/speckit.tasks` command
+- [x] tasks.md - Implementation task breakdown (49 tasks across 8 phases)
