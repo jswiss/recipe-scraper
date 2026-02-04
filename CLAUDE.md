@@ -27,6 +27,16 @@ contributions MUST comply with these principles.
 
 ## Active Technologies
 
+### Rust/Tauri Backend (002-rust-tauri-refactor)
+- **Rust 1.70+**: Backend language (stable toolchain)
+- **Tauri 2.x**: Desktop application framework
+- **reqwest 0.12+**: Async HTTP client
+- **url 2.x**: URL parsing (WHATWG standard)
+- **idna 1.x**: IDN/Punycode support
+- **serde 1.x**: Serialization
+- **thiserror 2.x**: Error handling
+
+### Python (to be removed after Rust refactor)
 - **Python 3.11+**: URL ingestion module (`src/url_ingestion/`)
 - **requests**: HTTP client for fetching web pages
 - **idna**: IDN/Punycode support for international domains
@@ -36,65 +46,72 @@ contributions MUST comply with these principles.
 ## Project Structure
 
 ```
-src/
-├── url_ingestion/          # URL validation, normalization, fetching
-│   ├── __init__.py         # Public API: ingest_url(), validate_url()
-│   ├── models.py           # FetchResult, FetchError, NormalizedURL
-│   ├── validator.py        # URL syntax and protocol validation
-│   ├── normalizer.py       # URL normalization (lowercase, IDN, ports)
-│   └── fetcher.py          # HTTP fetching with error handling
+src-tauri/                   # Rust/Tauri backend (new)
+├── Cargo.toml               # Rust dependencies
+├── tauri.conf.json          # Tauri configuration
+└── src/
+    ├── main.rs              # Tauri entry point
+    └── url_ingestion/       # URL ingestion module
+        ├── mod.rs           # Module exports
+        ├── models.rs        # Data types
+        ├── validator.rs     # URL validation
+        ├── normalizer.rs    # URL normalization
+        ├── fetcher.rs       # HTTP fetching
+        └── commands.rs      # Tauri commands
 
-tests/
-├── unit/                   # Component-level tests
-└── integration/            # End-to-end flow tests
+src/                         # Python (to be removed)
+├── url_ingestion/           # URL validation, normalization, fetching
 
-specs/                      # Feature specifications
-├── 001-url-ingestion/      # Current feature
-│   ├── spec.md             # Requirements and user stories
-│   ├── plan.md             # Implementation plan
-│   ├── tasks.md            # Task breakdown
-│   └── ...
+specs/                       # Feature specifications
+├── 001-url-ingestion/       # Python implementation (complete)
+├── 002-rust-tauri-refactor/ # Rust refactor (in progress)
 ```
 
 ## Commands
 
 ```bash
-# Run tests
-pytest
+# Rust/Tauri
+cargo build                  # Build Rust backend
+cargo test                   # Run Rust tests
+cargo tauri dev              # Run Tauri dev server
+cargo tauri build            # Build release
 
-# Run linting
-ruff check .
-
-# Format code
-ruff format .
-
-# Install dependencies
-pip install -e .
+# Python (deprecated)
+pytest                       # Run tests
+ruff check .                 # Run linting
+ruff format .                # Format code
+pip install -e .             # Install dependencies
 ```
 
 ## Code Style Guidelines
 
-### Python
+### Rust
 
-- Use type hints for all function signatures
-- Prefer `dataclass(frozen=True)` for immutable data structures
-- Use `Union` types (or `|` syntax) for result types that can succeed or fail
-- Return structured errors, never raise exceptions for expected failure cases
-- Keep functions under 20 lines; extract helpers for complex logic
+- Use `Result<T, E>` for operations that can fail
+- Prefer `thiserror` derive macros for custom errors
+- Use `serde` for serialization with `#[serde(rename_all = "snake_case")]`
+- Keep functions small and focused
+- Use `async`/`await` for I/O operations
 
-### Error Handling Pattern
+### Error Handling Pattern (Rust)
 
-```python
-# Good: Return typed errors
-def fetch(url: str) -> FetchSuccess | FetchError:
-    if not url:
-        return FetchError(ErrorType.VALIDATION, "No URL provided", url, None)
-    ...
+```rust
+// Good: Return Result with typed error
+pub async fn fetch(url: &str) -> Result<FetchSuccess, FetchError> {
+    if url.is_empty() {
+        return Err(FetchError::Validation {
+            message: "No URL provided".into(),
+            url: url.into(),
+        });
+    }
+    // ...
+}
 
-# Bad: Raise exceptions for expected cases
-def fetch(url: str) -> str:
-    if not url:
-        raise ValueError("No URL provided")  # Don't do this
+// Tauri command wrapper
+#[tauri::command]
+pub async fn ingest_url(url: String) -> Result<FetchSuccess, FetchError> {
+    fetch(&url).await
+}
 ```
 
 ### Dependency Rules
@@ -116,7 +133,8 @@ When building features, verify:
 
 ## Recent Changes
 
-- 001-url-ingestion: URL validation, normalization, and fetching module
+- 002-rust-tauri-refactor: Refactoring Python backend to Rust with Tauri v2
+- 001-url-ingestion: URL validation, normalization, and fetching module (Python)
 
 <!-- MANUAL ADDITIONS START -->
 <!-- Add project-specific notes below this line -->
