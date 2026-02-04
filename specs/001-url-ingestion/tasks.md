@@ -24,10 +24,10 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create project directory structure: `src/url_ingestion/` and `tests/unit/`, `tests/integration/`
-- [ ] T002 Initialize Python project with pyproject.toml including requests>=2.28 dependency
-- [ ] T003 [P] Create `src/url_ingestion/__init__.py` with module exports (ingest_url, validate_url, FetchSuccess, FetchError, ErrorType, NormalizedURL)
-- [ ] T004 [P] Configure ruff for linting in pyproject.toml
+- [X] T001 Create project directory structure: `src/url_ingestion/` and `tests/unit/`, `tests/integration/`
+- [X] T002 Initialize Python project with pyproject.toml including requests>=2.28 dependency
+- [X] T003 [P] Create `src/url_ingestion/__init__.py` with module exports (ingest_url, validate_url, FetchSuccess, FetchError, ErrorType, NormalizedURL)
+- [X] T004 [P] Configure ruff for linting in pyproject.toml
 
 ---
 
@@ -37,11 +37,11 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T005 Create ErrorType enum in `src/url_ingestion/models.py` with values: VALIDATION, NETWORK, HTTP, CONTENT_TYPE, SIZE
-- [ ] T006 Create NormalizedURL dataclass in `src/url_ingestion/models.py` with fields: scheme, host, port, path, query, fragment, and url property
-- [ ] T007 Create FetchSuccess dataclass in `src/url_ingestion/models.py` with fields: url, html, status_code, content_type, final_url
-- [ ] T008 Create FetchError dataclass in `src/url_ingestion/models.py` with fields: error_type, message, url, details
-- [ ] T009 Create FetchResult type alias (Union[FetchSuccess, FetchError]) in `src/url_ingestion/models.py`
+- [X] T005 Create ErrorType enum in `src/url_ingestion/models.py` with values: VALIDATION, NETWORK, HTTP, CONTENT_TYPE, SIZE
+- [X] T006 Create NormalizedURL dataclass in `src/url_ingestion/models.py` with fields: scheme, host, port, path, query, fragment, and url property
+- [X] T007 Create FetchSuccess dataclass in `src/url_ingestion/models.py` with fields: url, html, status_code, content_type, final_url
+- [X] T008 Create FetchError dataclass in `src/url_ingestion/models.py` with fields: error_type, message, url, details
+- [X] T009 Create FetchResult type alias (Union[FetchSuccess, FetchError]) in `src/url_ingestion/models.py`
 
 **Checkpoint**: Foundation ready - all data models defined, user story implementation can begin
 
@@ -55,16 +55,16 @@
 
 ### Implementation for User Story 1
 
-- [ ] T010 [US1] Implement URL parsing with urllib.parse.urlparse in `src/url_ingestion/validator.py` - parse raw URL into components
-- [ ] T011 [US1] Implement protocol validation in `src/url_ingestion/validator.py` - reject non-HTTP/HTTPS schemes
-- [ ] T012 [US1] Implement URL normalization in `src/url_ingestion/normalizer.py` - lowercase scheme/host, remove default ports (80/443), remove trailing slashes
-- [ ] T013 [US1] Implement IDN to Punycode conversion in `src/url_ingestion/normalizer.py` using idna.encode() for international domains
-- [ ] T014 [US1] Implement percent-encoding normalization in `src/url_ingestion/normalizer.py` - decode unnecessarily encoded chars
-- [ ] T015 [US1] Implement HTTP fetcher in `src/url_ingestion/fetcher.py` with requests.get(), 30-second timeout, max 5 redirects
-- [ ] T016 [US1] Add User-Agent header ("RecipeScraper/1.0") to requests in `src/url_ingestion/fetcher.py`
-- [ ] T017 [US1] Implement Content-Type validation in `src/url_ingestion/fetcher.py` - verify response is text/html
-- [ ] T018 [US1] Implement response size limiting in `src/url_ingestion/fetcher.py` using iter_content() with 10MB max
-- [ ] T019 [US1] Implement ingest_url() main entry point in `src/url_ingestion/__init__.py` - orchestrate validate→normalize→fetch→return FetchSuccess
+- [X] T010 [US1] Implement URL parsing with urllib.parse.urlparse in `src/url_ingestion/validator.py` - parse raw URL into components
+- [X] T011 [US1] Implement protocol validation in `src/url_ingestion/validator.py` - reject non-HTTP/HTTPS schemes
+- [X] T012 [US1] Implement URL normalization in `src/url_ingestion/normalizer.py` - lowercase scheme/host, remove default ports (80/443), remove trailing slashes
+- [X] T013 [US1] Implement IDN to Punycode conversion in `src/url_ingestion/normalizer.py` using idna.encode() for international domains
+- [X] T014 [US1] Implement percent-encoding normalization in `src/url_ingestion/normalizer.py` - decode unnecessarily encoded chars
+- [X] T015 [US1] Implement HTTP fetcher in `src/url_ingestion/fetcher.py` with requests.get(), 30-second timeout, max 5 redirects
+- [X] T016 [US1] Add User-Agent header ("RecipeScraper/1.0") to requests in `src/url_ingestion/fetcher.py`
+- [X] T017 [US1] Implement Content-Type validation in `src/url_ingestion/fetcher.py` - verify response is text/html
+- [X] T018 [US1] Implement response size limiting in `src/url_ingestion/fetcher.py` using iter_content() with 10MB max
+- [X] T019 [US1] Implement ingest_url() main entry point in `src/url_ingestion/__init__.py` - orchestrate validate→normalize→fetch→return FetchSuccess
 
 **Checkpoint**: User Story 1 complete - valid URLs can be fetched and return HTML content
 
@@ -78,11 +78,11 @@
 
 ### Implementation for User Story 2
 
-- [ ] T020 [US2] Add empty/whitespace input check in `src/url_ingestion/validator.py` - return FetchError(VALIDATION) with "No URL provided"
-- [ ] T021 [US2] Add URL syntax validation in `src/url_ingestion/validator.py` - return FetchError(VALIDATION) for malformed URLs
-- [ ] T022 [US2] Add missing protocol detection in `src/url_ingestion/validator.py` - return FetchError(VALIDATION) with "Missing scheme (http:// or https://)"
-- [ ] T023 [US2] Add protocol rejection for non-HTTP in `src/url_ingestion/validator.py` - return FetchError(VALIDATION) for ftp://, file://, etc.
-- [ ] T024 [US2] Implement validate_url() standalone function in `src/url_ingestion/__init__.py` for pre-validation without fetching
+- [X] T020 [US2] Add empty/whitespace input check in `src/url_ingestion/validator.py` - return FetchError(VALIDATION) with "No URL provided"
+- [X] T021 [US2] Add URL syntax validation in `src/url_ingestion/validator.py` - return FetchError(VALIDATION) for malformed URLs
+- [X] T022 [US2] Add missing protocol detection in `src/url_ingestion/validator.py` - return FetchError(VALIDATION) with "Missing scheme (http:// or https://)"
+- [X] T023 [US2] Add protocol rejection for non-HTTP in `src/url_ingestion/validator.py` - return FetchError(VALIDATION) for ftp://, file://, etc.
+- [X] T024 [US2] Implement validate_url() standalone function in `src/url_ingestion/__init__.py` for pre-validation without fetching
 
 **Checkpoint**: User Story 2 complete - invalid URLs are rejected with appropriate error messages
 
@@ -96,13 +96,13 @@
 
 ### Implementation for User Story 3
 
-- [ ] T025 [US3] Add DNS resolution error handling in `src/url_ingestion/fetcher.py` - catch requests.exceptions.ConnectionError, return FetchError(NETWORK)
-- [ ] T026 [US3] Add timeout error handling in `src/url_ingestion/fetcher.py` - catch requests.exceptions.Timeout, return FetchError(NETWORK) with "Request timed out"
-- [ ] T027 [US3] Add connection refused handling in `src/url_ingestion/fetcher.py` - catch connection errors, return FetchError(NETWORK)
-- [ ] T028 [US3] Add HTTP 4xx status handling in `src/url_ingestion/fetcher.py` - return FetchError(HTTP) with status code in details
-- [ ] T029 [US3] Add HTTP 5xx status handling in `src/url_ingestion/fetcher.py` - return FetchError(HTTP) with status code in details
-- [ ] T030 [US3] Add Content-Type rejection in `src/url_ingestion/fetcher.py` - return FetchError(CONTENT_TYPE) for non-HTML responses
-- [ ] T031 [US3] Add size limit rejection in `src/url_ingestion/fetcher.py` - return FetchError(SIZE) when response exceeds 10MB
+- [X] T025 [US3] Add DNS resolution error handling in `src/url_ingestion/fetcher.py` - catch requests.exceptions.ConnectionError, return FetchError(NETWORK)
+- [X] T026 [US3] Add timeout error handling in `src/url_ingestion/fetcher.py` - catch requests.exceptions.Timeout, return FetchError(NETWORK) with "Request timed out"
+- [X] T027 [US3] Add connection refused handling in `src/url_ingestion/fetcher.py` - catch connection errors, return FetchError(NETWORK)
+- [X] T028 [US3] Add HTTP 4xx status handling in `src/url_ingestion/fetcher.py` - return FetchError(HTTP) with status code in details
+- [X] T029 [US3] Add HTTP 5xx status handling in `src/url_ingestion/fetcher.py` - return FetchError(HTTP) with status code in details
+- [X] T030 [US3] Add Content-Type rejection in `src/url_ingestion/fetcher.py` - return FetchError(CONTENT_TYPE) for non-HTML responses
+- [X] T031 [US3] Add size limit rejection in `src/url_ingestion/fetcher.py` - return FetchError(SIZE) when response exceeds 10MB
 
 **Checkpoint**: All user stories complete - full error handling for validation, network, and HTTP errors
 
@@ -112,10 +112,10 @@
 
 **Purpose**: Final cleanup and validation
 
-- [ ] T032 [P] Update `src/url_ingestion/__init__.py` exports to include all public types
-- [ ] T033 [P] Add module docstring to `src/url_ingestion/__init__.py` with usage examples
-- [ ] T034 Run quickstart.md validation - execute example code snippets to verify they work
-- [ ] T035 Verify all error messages are human-readable and actionable
+- [X] T032 [P] Update `src/url_ingestion/__init__.py` exports to include all public types
+- [X] T033 [P] Add module docstring to `src/url_ingestion/__init__.py` with usage examples
+- [X] T034 Run quickstart.md validation - execute example code snippets to verify they work
+- [X] T035 Verify all error messages are human-readable and actionable
 
 ---
 
