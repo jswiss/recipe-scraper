@@ -140,13 +140,16 @@ When building features, verify:
 
 ### Commit Cadence
 
-1. **After each speckit step**:
-   - `/speckit.specify` → commit spec.md
-   - `/speckit.clarify` → commit updated spec.md
-   - `/speckit.plan` → commit plan.md, research.md, data-model.md, contracts/, quickstart.md
-   - `/speckit.tasks` → commit tasks.md
+**IMPORTANT**: Automatically `git add` and `git commit` after each step without waiting for user to ask.
 
-2. **During implementation**:
+1. **After each speckit step** (AUTO-COMMIT):
+   - `/speckit.specify` → auto-commit spec.md, checklists/
+   - `/speckit.clarify` → auto-commit updated spec.md
+   - `/speckit.plan` → auto-commit plan.md, research.md, data-model.md, contracts/, quickstart.md, CLAUDE.md
+   - `/speckit.tasks` → auto-commit tasks.md, updated plan.md
+   - `/speckit.implement` → auto-commit after each task completion
+
+2. **During implementation** (AUTO-COMMIT):
    - Commit after completing each task in tasks.md
    - Commit after completing each phase
 
