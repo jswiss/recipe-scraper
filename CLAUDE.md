@@ -165,6 +165,7 @@ When building features, verify:
 3. **Pull Requests**:
    - Create PR at the end of each phase in tasks.md
    - PR into `main` when feature is complete
+   - **Limit PRs to ~500 lines of code** - if a phase exceeds this, split into multiple PRs
 
 ### Commit Message Format
 
