@@ -5,6 +5,12 @@
 **Status**: Draft
 **Input**: User description: "Produce a structured data object for a recipe with title, description, ingredients, steps, times (prep, cook), servings, images (optional), optional nutrition. Should prioritize embedded machine-readable metadata if present (e.g., JSON-LD). All fields are present with valid content or marked explicitly null with justification."
 
+## Clarifications
+
+### Session 2026-02-04
+
+- Q: How should HTML fallback parsing work when no structured data is present? → A: Use a local, small AI model (e.g., Gemma3) to interpret unstructured HTML content
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Extract Recipe from Structured Data (Priority: P1)
@@ -29,11 +35,11 @@ As a user, when no machine-readable metadata is available, I want the system to 
 
 **Why this priority**: Many recipe websites don't use structured data, so HTML fallback parsing is essential for broad compatibility. This is secondary to structured data as it's less reliable.
 
-**Independent Test**: Can be tested by providing HTML without any structured data markup and verifying reasonable extraction from visible content.
+**Independent Test**: Can be tested by providing HTML without any structured data markup and verifying the local AI model extracts reasonable fields from visible content.
 
 **Acceptance Scenarios**:
 
-1. **Given** HTML without structured data but with recognizable recipe content, **When** I request extraction, **Then** the system attempts to extract fields from the page content
+1. **Given** HTML without structured data but with recognizable recipe content, **When** I request extraction, **Then** the system uses a local AI model to extract fields from the page content
 2. **Given** HTML where some fields cannot be determined, **When** I request extraction, **Then** those fields are marked as null with a justification explaining why
 
 ---
@@ -85,6 +91,7 @@ As a user, I want recipe images to be extracted when available, so that I can vi
 
 - **FR-001**: System MUST check for JSON-LD Recipe schema before attempting HTML parsing
 - **FR-002**: System MUST check for Microdata Recipe schema if JSON-LD is not present
+- **FR-002a**: System MUST use a local AI model (e.g., Gemma3) as fallback when no structured data is present
 - **FR-003**: System MUST extract title as a non-empty string or mark as null with justification
 - **FR-004**: System MUST extract description as a string or mark as null with justification
 - **FR-005**: System MUST extract ingredients as a list of structured items (name, quantity, unit) or raw strings
@@ -121,6 +128,7 @@ As a user, I want recipe images to be extracted when available, so that I can vi
 
 - HTML content is provided by the URL ingestion module (already fetched)
 - JSON-LD and Microdata parsing follows schema.org Recipe vocabulary
+- Local AI model (Gemma3 or similar) runs on-device for HTML fallback parsing (local-first principle)
 - Times are normalized to minutes for consistency
 - Image URLs are returned as absolute URLs
 - Nutrition values use standard units (calories, grams for macros)
