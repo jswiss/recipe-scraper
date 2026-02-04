@@ -117,7 +117,7 @@ As a project maintainer, I want all Python code removed after the Rust implement
 
 ### Key Entities
 
-- **NormalizedURL**: A validated URL with scheme, host, optional port, path, optional query, optional fragment
+- **NormalizedUrl**: A validated URL with scheme, host, optional port, path, optional query, optional fragment
 - **FetchSuccess**: Successful result containing NormalizedURL, HTML string, status code, content type, optional final URL
 - **FetchError**: Error result containing error type enum, human-readable message, original URL, optional details map
 - **ErrorType**: Enumeration of error categories (Validation, Network, Http, ContentType, Size)
@@ -126,7 +126,7 @@ As a project maintainer, I want all Python code removed after the Rust implement
 
 ### Measurable Outcomes
 
-- **SC-001**: All existing URL ingestion test scenarios pass with the Rust implementation (functional parity)
+- **SC-001**: All existing Python URL ingestion acceptance scenarios pass with the Rust implementation (verified manually per T038)
 - **SC-002**: URL validation completes in under 10 milliseconds for typical URLs
 - **SC-003**: 95% of fetches complete within 30 seconds (matching timeout behavior)
 - **SC-004**: Error messages are distinguishable by type without inspecting error details
@@ -152,3 +152,4 @@ As a project maintainer, I want all Python code removed after the Rust implement
 - JavaScript rendering (Playwright equivalent)
 - Batch URL processing
 - User interface implementation (frontend is separate concern)
+- Edge case handling beyond standard library/crate behavior (emoji paths, protocol-changing redirects, missing Content-Length, mid-transfer resets)

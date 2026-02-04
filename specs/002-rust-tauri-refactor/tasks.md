@@ -155,7 +155,7 @@
 - [ ] T046 Run `cargo clippy` and fix any warnings in `src-tauri/`
 - [ ] T047 Run `cargo fmt` to ensure consistent formatting in `src-tauri/`
 - [ ] T048 Verify quickstart.md examples work with actual Rust implementation
-- [ ] T049 Update plan.md to mark tasks.md as complete
+- [x] T049 Update plan.md to mark tasks.md as complete
 
 ---
 
