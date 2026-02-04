@@ -27,60 +27,53 @@ contributions MUST comply with these principles.
 
 ## Active Technologies
 
-### Rust/Tauri Backend (002-rust-tauri-refactor)
-- **Rust 1.70+**: Backend language (stable toolchain)
+### Rust/Tauri Backend
+- **Rust 1.77+**: Backend language (stable toolchain)
 - **Tauri 2.x**: Desktop application framework
 - **reqwest 0.12+**: Async HTTP client
 - **url 2.x**: URL parsing (WHATWG standard)
 - **idna 1.x**: IDN/Punycode support
 - **serde 1.x**: Serialization
 - **thiserror 2.x**: Error handling
-
-### Python (to be removed after Rust refactor)
-- **Python 3.11+**: URL ingestion module (`src/url_ingestion/`)
-- **requests**: HTTP client for fetching web pages
-- **idna**: IDN/Punycode support for international domains
-- **pytest**: Testing framework
-- **ruff**: Linting and formatting
+- **tokio 1.x**: Async runtime
 
 ## Project Structure
 
 ```
-src-tauri/                   # Rust/Tauri backend (new)
+src-tauri/                   # Rust/Tauri backend
 ├── Cargo.toml               # Rust dependencies
 ├── tauri.conf.json          # Tauri configuration
+├── capabilities/            # Tauri permissions
 └── src/
     ├── main.rs              # Tauri entry point
+    ├── lib.rs               # Library root
     └── url_ingestion/       # URL ingestion module
         ├── mod.rs           # Module exports
-        ├── models.rs        # Data types
+        ├── models.rs        # Data types (NormalizedUrl, FetchSuccess, FetchError)
         ├── validator.rs     # URL validation
         ├── normalizer.rs    # URL normalization
         ├── fetcher.rs       # HTTP fetching
         └── commands.rs      # Tauri commands
 
-src/                         # Python (to be removed)
-├── url_ingestion/           # URL validation, normalization, fetching
-
+dist/                        # Frontend build output
 specs/                       # Feature specifications
-├── 001-url-ingestion/       # Python implementation (complete)
-├── 002-rust-tauri-refactor/ # Rust refactor (in progress)
+├── 001-url-ingestion/       # Original Python implementation (archived)
+├── 002-rust-tauri-refactor/ # Rust refactor (complete)
 ```
 
 ## Commands
 
 ```bash
-# Rust/Tauri
+# Build and Run
+cd src-tauri
 cargo build                  # Build Rust backend
 cargo test                   # Run Rust tests
 cargo tauri dev              # Run Tauri dev server
-cargo tauri build            # Build release
+cargo tauri build            # Build release binary
 
-# Python (deprecated)
-pytest                       # Run tests
-ruff check .                 # Run linting
-ruff format .                # Format code
-pip install -e .             # Install dependencies
+# Code Quality
+cargo clippy                 # Run linter
+cargo fmt                    # Format code
 ```
 
 ## Code Style Guidelines
@@ -112,6 +105,22 @@ pub async fn fetch(url: &str) -> Result<FetchSuccess, FetchError> {
 pub async fn ingest_url(url: String) -> Result<FetchSuccess, FetchError> {
     fetch(&url).await
 }
+```
+
+### Tauri Command Pattern
+
+```rust
+// Commands accept State for shared resources
+#[tauri::command]
+pub async fn ingest_url(
+    url: String,
+    client: State<'_, HttpClient>
+) -> Result<FetchSuccess, FetchError> {
+    // validate -> normalize -> fetch
+}
+
+// Frontend invocation
+const result = await invoke<FetchSuccess>('ingest_url', { url: '...' });
 ```
 
 ### Dependency Rules
@@ -174,8 +183,7 @@ test: add tests for <component>
 
 ## Recent Changes
 
-- 002-rust-tauri-refactor: Refactoring Python backend to Rust with Tauri v2
-- 001-url-ingestion: URL validation, normalization, and fetching module (Python)
+- 002-rust-tauri-refactor: Completed Rust/Tauri backend refactor
 
 <!-- MANUAL ADDITIONS START -->
 <!-- Add project-specific notes below this line -->
