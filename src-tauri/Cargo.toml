@@ -1,0 +1,41 @@
+[package]
+name = "recipe-scraper"
+version = "0.1.0"
+description = "A recipe scraping desktop application"
+authors = ["Recipe Scraper Team"]
+license = "MIT"
+repository = ""
+edition = "2021"
+rust-version = "1.77.2"
+
+[lib]
+name = "recipe_scraper_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2.0.2" }
+
+[dependencies]
+# Tauri
+tauri = { version = "2.1.0" }
+tauri-plugin-log = "2.0.0-rc"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# HTTP client
+reqwest = { version = "0.12", features = ["json", "rustls-tls"] }
+
+# URL handling
+url = "2"
+idna = "1"
+
+# Error handling
+thiserror = "2"
+
+# Async runtime (via Tauri, but explicit for clarity)
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+
+# Logging
+log = "0.4"
