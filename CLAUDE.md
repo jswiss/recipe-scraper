@@ -27,74 +27,100 @@ contributions MUST comply with these principles.
 
 ## Active Technologies
 
-- **Python 3.11+**: URL ingestion module (`src/url_ingestion/`)
-- **requests**: HTTP client for fetching web pages
-- **idna**: IDN/Punycode support for international domains
-- **pytest**: Testing framework
-- **ruff**: Linting and formatting
+### Rust/Tauri Backend
+- **Rust 1.77+**: Backend language (stable toolchain)
+- **Tauri 2.x**: Desktop application framework
+- **reqwest 0.12+**: Async HTTP client
+- **url 2.x**: URL parsing (WHATWG standard)
+- **idna 1.x**: IDN/Punycode support
+- **serde 1.x**: Serialization
+- **thiserror 2.x**: Error handling
+- **tokio 1.x**: Async runtime
 
 ## Project Structure
 
 ```
-src/
-├── url_ingestion/          # URL validation, normalization, fetching
-│   ├── __init__.py         # Public API: ingest_url(), validate_url()
-│   ├── models.py           # FetchResult, FetchError, NormalizedURL
-│   ├── validator.py        # URL syntax and protocol validation
-│   ├── normalizer.py       # URL normalization (lowercase, IDN, ports)
-│   └── fetcher.py          # HTTP fetching with error handling
+src-tauri/                   # Rust/Tauri backend
+├── Cargo.toml               # Rust dependencies
+├── tauri.conf.json          # Tauri configuration
+├── capabilities/            # Tauri permissions
+└── src/
+    ├── main.rs              # Tauri entry point
+    ├── lib.rs               # Library root
+    └── url_ingestion/       # URL ingestion module
+        ├── mod.rs           # Module exports
+        ├── models.rs        # Data types (NormalizedUrl, FetchSuccess, FetchError)
+        ├── validator.rs     # URL validation
+        ├── normalizer.rs    # URL normalization
+        ├── fetcher.rs       # HTTP fetching
+        └── commands.rs      # Tauri commands
 
-tests/
-├── unit/                   # Component-level tests
-└── integration/            # End-to-end flow tests
-
-specs/                      # Feature specifications
-├── 001-url-ingestion/      # Current feature
-│   ├── spec.md             # Requirements and user stories
-│   ├── plan.md             # Implementation plan
-│   ├── tasks.md            # Task breakdown
-│   └── ...
+dist/                        # Frontend build output
+specs/                       # Feature specifications
+├── 001-url-ingestion/       # Original Python implementation (archived)
+├── 002-rust-tauri-refactor/ # Rust refactor (complete)
 ```
 
 ## Commands
 
 ```bash
-# Run tests
-pytest
+# Build and Run
+cd src-tauri
+cargo build                  # Build Rust backend
+cargo test                   # Run Rust tests
+cargo tauri dev              # Run Tauri dev server
+cargo tauri build            # Build release binary
 
-# Run linting
-ruff check .
-
-# Format code
-ruff format .
-
-# Install dependencies
-pip install -e .
+# Code Quality
+cargo clippy                 # Run linter
+cargo fmt                    # Format code
 ```
 
 ## Code Style Guidelines
 
-### Python
+### Rust
 
-- Use type hints for all function signatures
-- Prefer `dataclass(frozen=True)` for immutable data structures
-- Use `Union` types (or `|` syntax) for result types that can succeed or fail
-- Return structured errors, never raise exceptions for expected failure cases
-- Keep functions under 20 lines; extract helpers for complex logic
+- Use `Result<T, E>` for operations that can fail
+- Prefer `thiserror` derive macros for custom errors
+- Use `serde` for serialization with `#[serde(rename_all = "snake_case")]`
+- Keep functions small and focused
+- Use `async`/`await` for I/O operations
 
-### Error Handling Pattern
+### Error Handling Pattern (Rust)
 
-```python
-# Good: Return typed errors
-def fetch(url: str) -> FetchSuccess | FetchError:
-    if not url:
-        return FetchError(ErrorType.VALIDATION, "No URL provided", url, None)
-    ...
+```rust
+// Good: Return Result with typed error
+pub async fn fetch(url: &str) -> Result<FetchSuccess, FetchError> {
+    if url.is_empty() {
+        return Err(FetchError::Validation {
+            message: "No URL provided".into(),
+            url: url.into(),
+        });
+    }
+    // ...
+}
 
-# Bad: Raise exceptions for expected cases
-def fetch(url: str) -> str:
-    if not url:
-        raise ValueError("No URL provided")  # Don't do this
+// Tauri command wrapper
+#[tauri::command]
+pub async fn ingest_url(url: String) -> Result<FetchSuccess, FetchError> {
+    fetch(&url).await
+}
+```
+
+### Tauri Command Pattern
+
+```rust
+// Commands accept State for shared resources
+#[tauri::command]
+pub async fn ingest_url(
+    url: String,
+    client: State<'_, HttpClient>
+) -> Result<FetchSuccess, FetchError> {
+    // validate -> normalize -> fetch
+}
+
+// Frontend invocation
+const result = await invoke<FetchSuccess>('ingest_url', { url: '...' });
 ```
 
 ### Dependency Rules
@@ -114,9 +140,51 @@ When building features, verify:
 - [ ] User can export/backup their data
 - [ ] No cloud service is required for core functionality
 
+## Git Workflow
+
+### Branch Strategy
+
+- Create a new branch for each speckit feature: `###-feature-name` (e.g., `001-url-ingestion`)
+- Branch from `main` for new features
+
+### Commit Cadence
+
+**IMPORTANT**: Automatically `git add` and `git commit` after each step without waiting for user to ask.
+
+1. **After each speckit step** (AUTO-COMMIT):
+   - `/speckit.specify` → auto-commit spec.md, checklists/
+   - `/speckit.clarify` → auto-commit updated spec.md
+   - `/speckit.plan` → auto-commit plan.md, research.md, data-model.md, contracts/, quickstart.md, CLAUDE.md
+   - `/speckit.tasks` → auto-commit tasks.md, updated plan.md
+   - `/speckit.implement` → auto-commit after each task completion
+
+2. **During implementation** (AUTO-COMMIT):
+   - Commit after completing each task in tasks.md
+   - Commit after completing each phase
+
+3. **Pull Requests**:
+   - Create PR at the end of each phase in tasks.md
+   - PR into `main` when feature is complete
+   - **Limit PRs to ~500 lines of code** - if a phase exceeds this, split into multiple PRs
+
+### Commit Message Format
+
+```bash
+# Speckit artifacts
+docs: add feature specification for <feature>
+docs: add implementation plan for <feature>
+docs: add implementation tasks for <feature>
+
+# Implementation
+feat: implement <component/functionality>
+fix: resolve <issue>
+refactor: <description>
+test: add tests for <component>
+```
+
 ## Recent Changes
 
-- 001-url-ingestion: URL validation, normalization, and fetching module
+- 002-rust-tauri-refactor: Completed Rust/Tauri backend refactor
 
 <!-- MANUAL ADDITIONS START -->
 <!-- Add project-specific notes below this line -->
