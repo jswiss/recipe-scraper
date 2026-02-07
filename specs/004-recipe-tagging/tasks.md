@@ -19,9 +19,9 @@
 
 **Purpose**: Create module skeleton and shared types
 
-- [ ] T001 Create `src-tauri/src/recipe_tagging/` directory, `mod.rs` with module declarations (models, vocabulary, scoring, cuisine_tagger, course_tagger, diet_tagger, commands), and `models.rs` with all types from data-model.md: `Tag`, `TagDomain`, `TagSet` (with `empty()` and sort/filter methods), `TaggingResult`, `TaggingError` (with serde tagged enum), and `DietaryFlag` enum. Include unit tests for Tag creation, TagSet::empty(), confidence validation, and serde round-trip serialization.
-- [ ] T002 [P] Create `src-tauri/src/recipe_tagging/scoring.rs` with shared confidence helpers: `normalize_score(raw: f64, max: f64) -> f64` (clamps to [0.0, 1.0]), `filter_by_threshold(tags: Vec<Tag>, threshold: f64) -> Vec<Tag>` (removes below threshold, default 0.5 per FR-006), `sort_by_confidence(tags: &mut Vec<Tag>)` (descending per FR-007). Include unit tests.
-- [ ] T003 Register `pub mod recipe_tagging;` in `src-tauri/src/lib.rs` (module declaration only, no commands in invoke_handler yet). Verify `cargo build` succeeds.
+- [x] T001 Create `src-tauri/src/recipe_tagging/` directory, `mod.rs` with module declarations (models, vocabulary, scoring, cuisine_tagger, course_tagger, diet_tagger, commands), and `models.rs` with all types from data-model.md: `Tag`, `TagDomain`, `TagSet` (with `empty()` and sort/filter methods), `TaggingResult`, `TaggingError` (with serde tagged enum), and `DietaryFlag` enum. Include unit tests for Tag creation, TagSet::empty(), confidence validation, and serde round-trip serialization.
+- [x] T002 [P] Create `src-tauri/src/recipe_tagging/scoring.rs` with shared confidence helpers: `normalize_score(raw: f64, max: f64) -> f64` (clamps to [0.0, 1.0]), `filter_by_threshold(tags: Vec<Tag>, threshold: f64) -> Vec<Tag>` (removes below threshold, default 0.5 per FR-006), `sort_by_confidence(tags: &mut Vec<Tag>)` (descending per FR-007). Include unit tests.
+- [x] T003 Register `pub mod recipe_tagging;` in `src-tauri/src/lib.rs` (module declaration only, no commands in invoke_handler yet). Verify `cargo build` succeeds.
 
 **Checkpoint**: Module compiles with empty tagger files. `cargo build` passes.
 

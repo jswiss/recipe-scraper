@@ -1,4 +1,5 @@
 pub mod recipe_extraction;
+pub mod recipe_tagging;
 pub mod url_ingestion;
 
 use recipe_extraction::extract_recipe;
