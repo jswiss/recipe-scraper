@@ -26,6 +26,8 @@ contributions MUST comply with these principles.
    spinners for local operations. Sync is secondary.
 
 ## Active Technologies
+- Rust 1.77+ (stable toolchain) (003-recipe-extraction)
+- N/A (extraction only; storage is separate feature) (003-recipe-extraction)
 
 ### Rust/Tauri Backend
 - **Rust 1.77+**: Backend language (stable toolchain)
@@ -183,6 +185,7 @@ test: add tests for <component>
 ```
 
 ## Recent Changes
+- 003-recipe-extraction: Added Rust 1.77+ (stable toolchain)
 
 - 002-rust-tauri-refactor: Completed Rust/Tauri backend refactor
 
