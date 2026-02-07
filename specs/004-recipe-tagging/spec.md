@@ -108,7 +108,7 @@ As a user, I want to see the assigned tags alongside their confidence scores, so
 - **FR-014**: System MUST handle recipes with missing fields gracefully (e.g., no ingredients) by reducing confidence or omitting tags in affected domains
 - **FR-015**: System MUST use rule-based keyword/pattern matching as the default tagging strategy for all three domains
 - **FR-016**: System SHOULD provide an optional heuristic scoring refinement mode that users can trigger (e.g., "refine tags") to improve accuracy on cuisine and course tags using weighted multi-signal analysis
-- **FR-017**: Each tag domain MUST define a comprehensive vocabulary of ~30-50 predefined labels covering common and regional/niche categories, stored as structured data (e.g., config or const definitions)
+- **FR-017**: Each tag domain MUST define a comprehensive vocabulary of predefined labels stored as structured data (e.g., config or const definitions): ~35 for cuisine (including regional variants), ~12 for course (natural meal-type categories), ~15 for diet (common restrictions and preferences)
 - **FR-018**: System MUST automatically run rule-based tagging immediately after recipe extraction completes, with no additional user action required
 - **FR-019**: System MUST expose a separate on-demand tagging command that users can trigger to re-tag a recipe, including the optional heuristic refinement mode
 
