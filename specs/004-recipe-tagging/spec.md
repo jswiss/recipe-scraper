@@ -5,6 +5,15 @@
 **Status**: Draft
 **Input**: User description: "Assign tags to a recipe in cuisine, course (e.g., breakfast, dessert), and diet (e.g., vegan, gluten-free) domains. Associate a confidence score with each tag. Consistent types for tags and confidence values."
 
+## Clarifications
+
+### Session 2026-02-07
+
+- Q: What tagging approach should be used (rule-based, ML, or hybrid)? → A: Hybrid — rule-based keyword/pattern matching by default for all domains; optional user-triggered heuristic scoring refinement (e.g., a "refine tags" action) for improved accuracy on cuisine and course tags
+- Q: How large should the initial tag vocabulary be per domain? → A: Large (~30-50 per domain) — comprehensive coverage including regional and niche categories
+- Q: How should tagging integrate with the extraction pipeline? → A: Both — auto-tags with rule-based defaults after extraction; user can also re-trigger tagging (including heuristic refinement) on demand
+- Q: What ingredient matching strategy should be used for diet tagging? → A: Normalized matching with synonym/alias map (e.g., "AP flour" → "wheat flour" → contains gluten) — deterministic, auditable, and safe for dietary restrictions
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Automatic Cuisine Tagging (Priority: P1)
@@ -92,11 +101,16 @@ As a user, I want to see the assigned tags alongside their confidence scores, so
 - **FR-007**: System MUST order tags within each domain by confidence score, highest first
 - **FR-008**: System MUST derive cuisine tags from recipe title, ingredients, and preparation methods
 - **FR-009**: System MUST derive course tags from recipe title, description, ingredients, and contextual cues
-- **FR-010**: System MUST derive diet tags primarily from the ingredients list
+- **FR-010**: System MUST derive diet tags primarily from the ingredients list using normalized matching with a synonym/alias map (e.g., "AP flour" → "wheat flour" → contains gluten) to handle ingredient name variations deterministically
 - **FR-011**: System MUST assign multiple tags per domain when a recipe matches more than one category (e.g., a recipe can be both "Italian" and "Mediterranean")
 - **FR-012**: System MUST return a structured result containing all three tag domains, even if a domain has zero tags
 - **FR-013**: System MUST complete tagging without requiring network access (local-first)
 - **FR-014**: System MUST handle recipes with missing fields gracefully (e.g., no ingredients) by reducing confidence or omitting tags in affected domains
+- **FR-015**: System MUST use rule-based keyword/pattern matching as the default tagging strategy for all three domains
+- **FR-016**: System SHOULD provide an optional heuristic scoring refinement mode that users can trigger (e.g., "refine tags") to improve accuracy on cuisine and course tags using weighted multi-signal analysis
+- **FR-017**: Each tag domain MUST define a comprehensive vocabulary of ~30-50 predefined labels covering common and regional/niche categories, stored as structured data (e.g., config or const definitions)
+- **FR-018**: System MUST automatically run rule-based tagging immediately after recipe extraction completes, with no additional user action required
+- **FR-019**: System MUST expose a separate on-demand tagging command that users can trigger to re-tag a recipe, including the optional heuristic refinement mode
 
 ### Key Entities
 
@@ -119,12 +133,14 @@ As a user, I want to see the assigned tags alongside their confidence scores, so
 ## Assumptions
 
 - The input recipe is an already-extracted recipe from the recipe extraction module (feature 003)
-- Cuisine, course, and diet vocabularies use a predefined set of common labels (not open-ended free text)
+- Cuisine, course, and diet vocabularies use a predefined, comprehensive set of labels (~30-50 per domain) covering common and regional/niche categories (not open-ended free text)
 - Confidence scores are decimal values between 0.0 and 1.0, where 1.0 represents absolute certainty
 - The minimum confidence threshold of 0.3 is a reasonable default to filter out noise
 - Tagging operates locally using the recipe's own data fields (title, ingredients, steps, description) without external lookups
+- Default tagging uses rule-based keyword/pattern matching; an optional heuristic refinement mode provides improved accuracy when user-triggered
+- Tagging runs automatically after extraction (rule-based) and is also callable on-demand (including heuristic refinement)
 - A recipe may receive zero tags in any domain if the system cannot determine a categorization with sufficient confidence
-- Diet tagging is best-effort based on ingredient names; it cannot account for cross-contamination or manufacturing processes
+- Diet tagging is best-effort based on ingredient names matched through a normalized synonym/alias map; it cannot account for cross-contamination or manufacturing processes
 
 ## Out of Scope
 
