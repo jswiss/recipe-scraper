@@ -23,10 +23,10 @@ Based on plan.md, this is a Tauri/Rust project:
 
 **Purpose**: Project initialization and module structure
 
-- [ ] T001 Add `scraper = "0.17"` dependency to src-tauri/Cargo.toml
-- [ ] T002 Create recipe_extraction module directory at src-tauri/src/recipe_extraction/
-- [ ] T003 Create module root file at src-tauri/src/recipe_extraction/mod.rs with submodule declarations
-- [ ] T004 Register recipe_extraction module in src-tauri/src/lib.rs
+- [x] T001 Add `scraper = "0.17"` dependency to src-tauri/Cargo.toml
+- [x] T002 Create recipe_extraction module directory at src-tauri/src/recipe_extraction/
+- [x] T003 Create module root file at src-tauri/src/recipe_extraction/mod.rs with submodule declarations
+- [x] T004 Register recipe_extraction module in src-tauri/src/lib.rs
 
 ---
 
@@ -36,15 +36,15 @@ Based on plan.md, this is a Tauri/Rust project:
 
 **CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T005 [P] Implement ExtractedField<T> enum (Found/NotFound variants) in src-tauri/src/recipe_extraction/models.rs
-- [ ] T006 [P] Implement ExtractionSource enum (JsonLd, Microdata, AiFallback) in src-tauri/src/recipe_extraction/models.rs
-- [ ] T007 [P] Implement Ingredient struct with name, quantity, unit, raw_text in src-tauri/src/recipe_extraction/models.rs
-- [ ] T008 [P] Implement Instruction struct with step_number, text in src-tauri/src/recipe_extraction/models.rs
-- [ ] T009 [P] Implement NutritionInfo struct with all nutrition fields in src-tauri/src/recipe_extraction/models.rs
-- [ ] T010 Implement ExtractedRecipe struct with all fields using ExtractedField<T> in src-tauri/src/recipe_extraction/models.rs
-- [ ] T011 Implement ExtractionError enum with all variants in src-tauri/src/recipe_extraction/models.rs
-- [ ] T012 [P] Implement ISO 8601 duration parser (PT15M -> 15 minutes) in src-tauri/src/recipe_extraction/duration.rs
-- [ ] T013 Export all types from src-tauri/src/recipe_extraction/mod.rs
+- [x] T005 [P] Implement ExtractedField<T> enum (Found/NotFound variants) in src-tauri/src/recipe_extraction/models.rs
+- [x] T006 [P] Implement ExtractionSource enum (JsonLd, Microdata, AiFallback) in src-tauri/src/recipe_extraction/models.rs
+- [x] T007 [P] Implement Ingredient struct with name, quantity, unit, raw_text in src-tauri/src/recipe_extraction/models.rs
+- [x] T008 [P] Implement Instruction struct with step_number, text in src-tauri/src/recipe_extraction/models.rs
+- [x] T009 [P] Implement NutritionInfo struct with all nutrition fields in src-tauri/src/recipe_extraction/models.rs
+- [x] T010 Implement ExtractedRecipe struct with all fields using ExtractedField<T> in src-tauri/src/recipe_extraction/models.rs
+- [x] T011 Implement ExtractionError enum with all variants in src-tauri/src/recipe_extraction/models.rs
+- [x] T012 [P] Implement ISO 8601 duration parser (PT15M -> 15 minutes) in src-tauri/src/recipe_extraction/duration.rs
+- [x] T013 Export all types from src-tauri/src/recipe_extraction/mod.rs
 
 **Checkpoint**: Foundation ready - core types available for all extraction implementations
 
@@ -60,33 +60,33 @@ Based on plan.md, this is a Tauri/Rust project:
 
 #### JSON-LD Extraction
 
-- [ ] T014 [P] [US1] Create json_ld.rs module file at src-tauri/src/recipe_extraction/json_ld.rs
-- [ ] T015 [US1] Implement find_jsonld_scripts() to extract `<script type="application/ld+json">` content using scraper in src-tauri/src/recipe_extraction/json_ld.rs
-- [ ] T016 [US1] Implement is_recipe_schema() to check @type contains "Recipe" (string or array) in src-tauri/src/recipe_extraction/json_ld.rs
-- [ ] T017 [US1] Implement parse_recipe_from_jsonld() to map JSON-LD fields to ExtractedRecipe in src-tauri/src/recipe_extraction/json_ld.rs
-- [ ] T018 [US1] Handle @graph mode (array of objects) in JSON-LD extraction in src-tauri/src/recipe_extraction/json_ld.rs
-- [ ] T019 [US1] Implement extract_ingredients_from_jsonld() for recipeIngredient parsing in src-tauri/src/recipe_extraction/json_ld.rs
-- [ ] T020 [US1] Implement extract_instructions_from_jsonld() for recipeInstructions (strings and HowToStep) in src-tauri/src/recipe_extraction/json_ld.rs
-- [ ] T021 [US1] Implement extract_nutrition_from_jsonld() for NutritionInformation in src-tauri/src/recipe_extraction/json_ld.rs
-- [ ] T022 [US1] Implement extract_from_jsonld() public entry point returning Result<ExtractedRecipe, ExtractionError> in src-tauri/src/recipe_extraction/json_ld.rs
+- [x] T014 [P] [US1] Create json_ld.rs module file at src-tauri/src/recipe_extraction/json_ld.rs
+- [x] T015 [US1] Implement find_jsonld_scripts() to extract `<script type="application/ld+json">` content using scraper in src-tauri/src/recipe_extraction/json_ld.rs
+- [x] T016 [US1] Implement is_recipe_schema() to check @type contains "Recipe" (string or array) in src-tauri/src/recipe_extraction/json_ld.rs
+- [x] T017 [US1] Implement parse_recipe_from_jsonld() to map JSON-LD fields to ExtractedRecipe in src-tauri/src/recipe_extraction/json_ld.rs
+- [x] T018 [US1] Handle @graph mode (array of objects) in JSON-LD extraction in src-tauri/src/recipe_extraction/json_ld.rs
+- [x] T019 [US1] Implement extract_ingredients_from_jsonld() for recipeIngredient parsing in src-tauri/src/recipe_extraction/json_ld.rs
+- [x] T020 [US1] Implement extract_instructions_from_jsonld() for recipeInstructions (strings and HowToStep) in src-tauri/src/recipe_extraction/json_ld.rs
+- [x] T021 [US1] Implement extract_nutrition_from_jsonld() for NutritionInformation in src-tauri/src/recipe_extraction/json_ld.rs
+- [x] T022 [US1] Implement extract_from_jsonld() public entry point returning Result<ExtractedRecipe, ExtractionError> in src-tauri/src/recipe_extraction/json_ld.rs
 
 #### Microdata Extraction
 
-- [ ] T023 [P] [US1] Create microdata.rs module file at src-tauri/src/recipe_extraction/microdata.rs
-- [ ] T024 [US1] Implement find_recipe_itemscope() to locate `[itemscope][itemtype*="schema.org/Recipe"]` using scraper in src-tauri/src/recipe_extraction/microdata.rs
-- [ ] T025 [US1] Implement extract_itemprop() helper to get value from itemprop elements (content attr or text) in src-tauri/src/recipe_extraction/microdata.rs
-- [ ] T026 [US1] Implement extract_ingredients_from_microdata() for `[itemprop="recipeIngredient"]` elements in src-tauri/src/recipe_extraction/microdata.rs
-- [ ] T027 [US1] Implement extract_instructions_from_microdata() for `[itemprop="recipeInstructions"]` elements in src-tauri/src/recipe_extraction/microdata.rs
-- [ ] T028 [US1] Implement extract_nutrition_from_microdata() for nested nutrition itemscope in src-tauri/src/recipe_extraction/microdata.rs
-- [ ] T029 [US1] Implement extract_from_microdata() public entry point returning Result<ExtractedRecipe, ExtractionError> in src-tauri/src/recipe_extraction/microdata.rs
+- [x] T023 [P] [US1] Create microdata.rs module file at src-tauri/src/recipe_extraction/microdata.rs
+- [x] T024 [US1] Implement find_recipe_itemscope() to locate `[itemscope][itemtype*="schema.org/Recipe"]` using scraper in src-tauri/src/recipe_extraction/microdata.rs
+- [x] T025 [US1] Implement extract_itemprop() helper to get value from itemprop elements (content attr or text) in src-tauri/src/recipe_extraction/microdata.rs
+- [x] T026 [US1] Implement extract_ingredients_from_microdata() for `[itemprop="recipeIngredient"]` elements in src-tauri/src/recipe_extraction/microdata.rs
+- [x] T027 [US1] Implement extract_instructions_from_microdata() for `[itemprop="recipeInstructions"]` elements in src-tauri/src/recipe_extraction/microdata.rs
+- [x] T028 [US1] Implement extract_nutrition_from_microdata() for nested nutrition itemscope in src-tauri/src/recipe_extraction/microdata.rs
+- [x] T029 [US1] Implement extract_from_microdata() public entry point returning Result<ExtractedRecipe, ExtractionError> in src-tauri/src/recipe_extraction/microdata.rs
 
 #### Command Integration for US1
 
-- [ ] T030 [P] [US1] Create commands.rs module file at src-tauri/src/recipe_extraction/commands.rs
-- [ ] T031 [US1] Implement extract_recipe Tauri command with JSON-LD → Microdata fallback chain in src-tauri/src/recipe_extraction/commands.rs
-- [ ] T032 [US1] Register extract_recipe command in Tauri invoke_handler in src-tauri/src/lib.rs
-- [ ] T033 [US1] Add unit tests for JSON-LD extraction with sample HTML in src-tauri/src/recipe_extraction/json_ld.rs
-- [ ] T034 [US1] Add unit tests for Microdata extraction with sample HTML in src-tauri/src/recipe_extraction/microdata.rs
+- [x] T030 [P] [US1] Create commands.rs module file at src-tauri/src/recipe_extraction/commands.rs
+- [x] T031 [US1] Implement extract_recipe Tauri command with JSON-LD → Microdata fallback chain in src-tauri/src/recipe_extraction/commands.rs
+- [x] T032 [US1] Register extract_recipe command in Tauri invoke_handler in src-tauri/src/lib.rs
+- [x] T033 [US1] Add unit tests for JSON-LD extraction with sample HTML in src-tauri/src/recipe_extraction/json_ld.rs
+- [x] T034 [US1] Add unit tests for Microdata extraction with sample HTML in src-tauri/src/recipe_extraction/microdata.rs
 
 **Checkpoint**: User Story 1 complete - recipes with JSON-LD or Microdata can be extracted
 
@@ -144,12 +144,12 @@ Based on plan.md, this is a Tauri/Rust project:
 
 ### Implementation for User Story 3
 
-- [ ] T053 [US3] Add standard justification messages as constants (NOT_FOUND, AMBIGUOUS, NOT_PROVIDED) in src-tauri/src/recipe_extraction/models.rs
+- [x] T053 [US3] Add standard justification messages as constants (NOT_FOUND, AMBIGUOUS, NOT_PROVIDED) in src-tauri/src/recipe_extraction/models.rs
 - [ ] T054 [US3] Implement validate_recipe() to ensure all ExtractedField variants have justifications when NotFound in src-tauri/src/recipe_extraction/models.rs
-- [ ] T055 [US3] Update JSON-LD extractor to provide specific justifications for missing fields in src-tauri/src/recipe_extraction/json_ld.rs
-- [ ] T056 [US3] Update Microdata extractor to provide specific justifications for missing fields in src-tauri/src/recipe_extraction/microdata.rs
+- [x] T055 [US3] Update JSON-LD extractor to provide specific justifications for missing fields in src-tauri/src/recipe_extraction/json_ld.rs
+- [x] T056 [US3] Update Microdata extractor to provide specific justifications for missing fields in src-tauri/src/recipe_extraction/microdata.rs
 - [ ] T057 [US3] Update AI extractor to provide justifications from model output in src-tauri/src/recipe_extraction/ai_fallback.rs
-- [ ] T058 [US3] Implement detect_no_recipe() to return NoRecipeFound error with html_preview in src-tauri/src/recipe_extraction/commands.rs
+- [x] T058 [US3] Implement detect_no_recipe() to return NoRecipeFound error with html_preview in src-tauri/src/recipe_extraction/commands.rs
 - [ ] T059 [US3] Add justification tests for partial data scenarios in src-tauri/src/recipe_extraction/json_ld.rs
 
 **Checkpoint**: User Story 3 complete - all null fields include human-readable justifications
@@ -164,9 +164,9 @@ Based on plan.md, this is a Tauri/Rust project:
 
 ### Implementation for User Story 4
 
-- [ ] T060 [US4] Implement extract_images_from_jsonld() for image field (string, array, or ImageObject) in src-tauri/src/recipe_extraction/json_ld.rs
+- [x] T060 [US4] Implement extract_images_from_jsonld() for image field (string, array, or ImageObject) in src-tauri/src/recipe_extraction/json_ld.rs
 - [ ] T061 [US4] Implement normalize_image_url() to convert relative URLs to absolute in src-tauri/src/recipe_extraction/json_ld.rs
-- [ ] T062 [US4] Implement extract_images_from_microdata() for `[itemprop="image"]` elements in src-tauri/src/recipe_extraction/microdata.rs
+- [x] T062 [US4] Implement extract_images_from_microdata() for `[itemprop="image"]` elements in src-tauri/src/recipe_extraction/microdata.rs
 - [ ] T063 [US4] Update AI prompt to include image extraction from HTML img tags in src-tauri/src/recipe_extraction/ai_fallback.rs
 - [ ] T064 [US4] Add image extraction tests for various image formats (string, array, object) in src-tauri/src/recipe_extraction/json_ld.rs
 
@@ -189,12 +189,12 @@ Based on plan.md, this is a Tauri/Rust project:
 
 **Purpose**: Final validation and cleanup
 
-- [ ] T069 Run cargo clippy and fix all warnings in src-tauri/
-- [ ] T070 Run cargo fmt to ensure consistent formatting in src-tauri/
-- [ ] T071 Run cargo test to verify all tests pass
-- [ ] T072 Verify extract_recipe command works with sample JSON-LD HTML
-- [ ] T073 Verify extract_recipe command works with sample Microdata HTML
-- [ ] T074 Verify extract_recipe command returns proper error for non-recipe HTML
+- [x] T069 Run cargo clippy and fix all warnings in src-tauri/
+- [x] T070 Run cargo fmt to ensure consistent formatting in src-tauri/
+- [x] T071 Run cargo test to verify all tests pass
+- [x] T072 Verify extract_recipe command works with sample JSON-LD HTML
+- [x] T073 Verify extract_recipe command works with sample Microdata HTML
+- [x] T074 Verify extract_recipe command returns proper error for non-recipe HTML
 - [ ] T075 Update quickstart.md with actual test commands and results in specs/003-recipe-extraction/quickstart.md
 
 ---
@@ -277,3 +277,22 @@ T036 can start as soon as T035 completes
 - Commit after each task or logical group
 - US2 (AI fallback) can be deferred if model setup is complex
 - All null fields must have justifications per FR-012
+
+---
+
+## Progress Summary
+
+**MVP Complete**: Phases 1-3 (34 tasks)
+
+| Phase | Tasks | Completed | Status |
+|-------|-------|-----------|--------|
+| Phase 1: Setup | 4 | 4 | DONE |
+| Phase 2: Foundational | 9 | 9 | DONE |
+| Phase 3: User Story 1 | 21 | 21 | DONE |
+| Phase 4: User Story 2 | 18 | 0 | Pending |
+| Phase 5: User Story 3 | 7 | 4 | Partial |
+| Phase 6: User Story 4 | 5 | 2 | Partial |
+| Phase 7: Convenience | 4 | 0 | Pending |
+| Phase 8: Polish | 7 | 6 | Partial |
+
+**Tests Passing**: 53 tests (31 new for recipe_extraction + 22 existing)
