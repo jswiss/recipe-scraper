@@ -21,7 +21,7 @@ pub struct Tag {
 **Validation rules**:
 - `label` must be non-empty and match a label from the domain's vocabulary
 - `confidence` must be in range [0.0, 1.0]
-- Only tags with `confidence >= 0.3` are included in output (FR-006)
+- Only tags with `confidence >= 0.5` are included in output (FR-006)
 
 ### TagDomain
 
@@ -58,7 +58,7 @@ pub struct TagSet {
 **Invariants**:
 - All three fields are always present (may be empty `Vec`)
 - Tags within each field are sorted by `confidence` descending (FR-007)
-- All tags have `confidence >= 0.3` (FR-006)
+- All tags have `confidence >= 0.5` (FR-006)
 - Tag labels are drawn from the predefined vocabulary for that domain
 
 ### TaggingResult

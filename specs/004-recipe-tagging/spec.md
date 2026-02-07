@@ -97,7 +97,7 @@ As a user, I want to see the assigned tags alongside their confidence scores, so
 - **FR-003**: System MUST use consistent data types for all tags (string label) and confidence values (decimal number) across all three domains
 - **FR-004**: System MUST accept an extracted recipe (from the recipe extraction module) as input for tagging
 - **FR-005**: System MUST support assigning zero or more tags per domain for a single recipe
-- **FR-006**: System MUST only assign tags that meet a minimum confidence threshold of 0.3
+- **FR-006**: System MUST only assign tags that meet a minimum confidence threshold of 0.5
 - **FR-007**: System MUST order tags within each domain by confidence score, highest first
 - **FR-008**: System MUST derive cuisine tags from recipe title, ingredients, and preparation methods
 - **FR-009**: System MUST derive course tags from recipe title, description, ingredients, and contextual cues
@@ -128,14 +128,14 @@ As a user, I want to see the assigned tags alongside their confidence scores, so
 - **SC-003**: 85% of recipes receive at least one correct course tag as verified by manual review
 - **SC-004**: Diet tags correctly identify vegan, vegetarian, and gluten-free recipes with 90% accuracy based on ingredient analysis
 - **SC-005**: All tags across all domains use the same consistent type structure (label + confidence score)
-- **SC-006**: Zero false-positive diet tags for safety-critical dietary restrictions (e.g., a recipe with gluten is never tagged "gluten-free" with confidence above 0.3)
+- **SC-006**: Zero false-positive diet tags for safety-critical dietary restrictions (e.g., a recipe with gluten is never tagged "gluten-free" with confidence above 0.5)
 
 ## Assumptions
 
 - The input recipe is an already-extracted recipe from the recipe extraction module (feature 003)
 - Cuisine, course, and diet vocabularies use a predefined, comprehensive set of labels (~30-50 per domain) covering common and regional/niche categories (not open-ended free text)
 - Confidence scores are decimal values between 0.0 and 1.0, where 1.0 represents absolute certainty
-- The minimum confidence threshold of 0.3 is a reasonable default to filter out noise
+- The minimum confidence threshold of 0.5 is a reasonable default to filter out noise
 - Tagging operates locally using the recipe's own data fields (title, ingredients, steps, description) without external lookups
 - Default tagging uses rule-based keyword/pattern matching; an optional heuristic refinement mode provides improved accuracy when user-triggered
 - Tagging runs automatically after extraction (rule-based) and is also callable on-demand (including heuristic refinement)

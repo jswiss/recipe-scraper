@@ -61,7 +61,7 @@ const tags = await invoke<TagSet>('tag_recipe', {
 - `refine` defaults to `false` if omitted
 - When `refine = false`: Uses rule-based keyword matching (fast, default)
 - When `refine = true`: Uses heuristic scoring with co-occurrence analysis (more accurate)
-- Returns empty `Vec` for any domain where no tags meet the 0.3 threshold
+- Returns empty `Vec` for any domain where no tags meet the 0.5 threshold
 - Tags within each domain are sorted by confidence descending
 
 ---
