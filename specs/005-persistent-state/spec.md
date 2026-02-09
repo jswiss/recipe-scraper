@@ -77,7 +77,7 @@ A user has the app installed on multiple devices. When online, recipes saved on 
 - What happens if a recipe's source URL becomes unavailable after saving? The saved recipe data remains fully intact; persistence is independent of the source website.
 - What happens during a sync conflict where the same recipe field was edited on two devices? The system automatically resolves using last-write-wins at the per-field level, preserving non-conflicting changes from both devices.
 - What happens if the app crashes mid-save? The system uses atomic writes so data is either fully saved or not saved at all; no partial or corrupt states.
-- What happens when a user deletes a recipe on one device while another device is offline? The deletion syncs when the offline device reconnects; if the offline device modified the recipe, the user is notified of the conflict.
+- What happens when a user deletes a recipe on one device while another device is offline? If the offline device did not modify the recipe, the deletion syncs normally. If the offline device modified the recipe, the modification wins and the recipe is restored with the edits on all devices (the user can re-delete if intended).
 
 ## Requirements *(mandatory)*
 
@@ -88,40 +88,52 @@ A user has the app installed on multiple devices. When online, recipes saved on 
 - **FR-003**: System MUST deduplicate recipes by source URL; re-scraping the same URL updates the existing recipe rather than creating a new entry.
 - **FR-004**: System MUST perform all local data operations (read, write, search, filter) without network access.
 - **FR-005**: System MUST NOT display loading spinners or progress indicators for local data operations.
-- **FR-006**: System MUST support exporting individual recipes or the entire collection in a standard, human-readable format.
-- **FR-007**: System MUST support importing recipes from the same export format.
+- **FR-006**: System MUST support exporting individual recipes or the entire collection as JSON using the schema.org/Recipe vocabulary.
+- **FR-007**: System MUST support importing recipes from schema.org/Recipe JSON (the same format used for export).
 - **FR-008**: System MUST preserve data integrity during unexpected shutdowns (atomic writes; no partial saves).
 - **FR-009**: System MUST allow users to delete individual recipes from their collection.
+- **FR-015**: System MUST allow users to edit any field of a saved recipe (title, description, ingredients, instructions, times, servings, tags). Edits are persisted and participate in sync.
+- **FR-016**: System MUST provide a personal notes field on each recipe for free-form user annotations. Notes are persisted and synced alongside all other recipe data.
 - **FR-010**: System MUST track when each recipe was first saved and last updated.
 - **FR-011**: System MUST allow users to search and filter recipes by title, ingredients, and tags (cuisine, course, diet) while offline.
-- **FR-012**: System MUST sync recipe data across devices when an internet connection is available, without blocking local operations.
-- **FR-013**: System MUST handle sync conflicts automatically using a last-write-wins strategy at the per-field level. When the same recipe is modified on multiple devices, each field resolves independently to the most recent edit, preserving non-conflicting changes from both devices.
+- **FR-012**: System MUST sync recipe data across devices by storing its data file in a cloud-synced location (e.g., iCloud). The OS/cloud storage layer handles file transport; the app does not implement its own sync protocol.
+- **FR-013**: System MUST handle sync conflicts automatically using a last-write-wins strategy at the per-field level. When the same recipe is modified on multiple devices, each field resolves independently to the most recent edit, preserving non-conflicting changes from both devices. Conflict resolution operates at the application layer on top of the file-based sync.
 - **FR-014**: System MUST allow users to back up and restore their entire recipe collection.
 
 ### Key Entities
 
-- **Recipe**: The central entity. Represents a single scraped recipe with all extracted fields (title, description, ingredients, instructions, times, servings, images, nutrition), its source URL, extraction metadata, assigned tags, and persistence timestamps (created/updated).
+- **Recipe**: The central entity. Represents a single scraped recipe with all extracted fields (title, description, ingredients, instructions, times, servings, images, nutrition), its source URL, extraction metadata, assigned tags, a personal notes field, and persistence timestamps (created/updated). All fields are user-editable after saving. Recipes are always sourced from a scrape (no manual creation).
 - **Tag**: A categorization label with a confidence score, belonging to a domain (cuisine, course, or diet). Associated with a recipe. Users may override auto-generated tags.
 - **Ingredient**: A structured component of a recipe with name, optional quantity, optional unit, and raw text.
 - **Instruction**: An ordered preparation step within a recipe, with a step number and text.
-- **Sync State**: Metadata tracking the synchronization status of each recipe across devices (e.g., last synced timestamp, pending changes, conflict markers).
+- **Sync State**: Metadata tracking per-recipe modification timestamps to support conflict resolution when the shared data file is updated by multiple devices via cloud storage.
 
 ## Success Criteria *(mandatory)*
 
 ### Measurable Outcomes
 
 - **SC-001**: Users can close and reopen the app and see 100% of previously saved recipes with all data intact.
-- **SC-002**: All local operations (browsing, searching, filtering, viewing recipe details) complete in under 100 milliseconds with no visible loading indicators.
+- **SC-002**: All local operations (browsing, searching, filtering, viewing recipe details) complete in under 100 milliseconds with no visible loading indicators, even with a collection of 5,000 recipes.
 - **SC-003**: The app functions fully offline for all local operations (browse, search, filter, view, export, import) with zero network dependency.
 - **SC-004**: Exported recipes can be successfully imported into the app on a different device with 100% data fidelity.
 - **SC-005**: When two devices are online, a recipe saved on one device appears on the other within 30 seconds.
 - **SC-006**: No user data is lost during sync conflicts; all conflicting changes are preserved or merged.
 - **SC-007**: Users can back up their entire collection and restore it on a fresh install with 100% data fidelity.
 
+## Clarifications
+
+### Session 2026-02-09
+
+- Q: Can users manually create new recipes or edit scraped recipe fields after saving? → A: Users can edit scraped recipe fields after saving but cannot manually create new recipes from scratch. Each recipe also has a personal notes field for user annotations.
+- Q: When one device deletes a recipe and another device edits it, which wins? → A: Modify wins. The recipe is restored with the edits on all devices; the user can re-delete if intended.
+- Q: What is the expected upper bound on recipe collection size? → A: Up to 5,000 recipes. Performance targets (SC-002) must hold at this scale.
+- Q: What specific export/import format should be used? → A: JSON using schema.org/Recipe vocabulary, the same structured data format the app already extracts.
+- Q: How does sync work between devices? → A: File-based sync via iCloud. The app stores its SQLite data file in an iCloud-accessible directory; the OS handles file transport. No custom sync server or protocol needed.
+
 ## Assumptions
 
-- The user's device has sufficient local storage for their recipe collection. Recipes are primarily text data with image URLs (not image files stored locally), so storage requirements are modest.
-- Export/import uses a standard recipe interchange format (such as a JSON-based schema) rather than a proprietary format.
-- Sync is opt-in and requires the user to set up a sync target; the app does not require account creation for local-only usage.
+- The user's device has sufficient local storage for their recipe collection. A collection may contain up to 5,000 recipes. Recipes are primarily text data with image URLs (not image files stored locally), so storage requirements are modest.
+- Export/import uses JSON with the schema.org/Recipe vocabulary — the same structured data format the app already extracts from websites.
+- Sync is opt-in via the user's existing cloud storage (iCloud); the app does not require account creation or a custom sync server.
 - Image URLs are persisted but images themselves are not cached locally (image caching may be a separate feature).
-- The sync mechanism is peer-oriented or self-hostable, consistent with the project's principle of avoiding cloud vendor lock-in.
+- The sync mechanism is file-based: the app stores its SQLite data file in an iCloud-accessible directory, and iCloud handles file transport across devices. No custom sync server or peer-to-peer protocol is needed.
