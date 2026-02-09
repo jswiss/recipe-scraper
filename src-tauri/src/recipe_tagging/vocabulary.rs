@@ -345,5 +345,23 @@ pub fn ingredient_properties() -> HashMap<&'static str, &'static [DietaryFlag]> 
         ("coconut", &[]),
         ("rice flour", &[HighCarb]),
         ("fish sauce", &[ContainsFish]),
+        // Vegetables & fruits (no dietary flags)
+        ("tomato", &[]), ("potato", &[HighCarb]), ("onion", &[]), ("garlic", &[]),
+        ("carrot", &[]), ("celery", &[]), ("bell pepper", &[]), ("broccoli", &[]),
+        ("spinach", &[]), ("kale", &[]), ("lettuce", &[]), ("cabbage", &[]),
+        ("zucchini", &[]), ("eggplant", &[]), ("mushroom", &[]), ("corn", &[HighCarb]),
+        ("peas", &[]), ("green beans", &[]), ("asparagus", &[]), ("cauliflower", &[]),
+        ("sweet potato", &[HighCarb]), ("avocado", &[HighFat]), ("cucumber", &[]),
+        ("lemon", &[]), ("lime", &[]), ("orange", &[]), ("apple", &[]),
+        ("banana", &[HighCarb]), ("blueberries", &[]), ("strawberries", &[]),
+        // Herbs & spices (no dietary flags)
+        ("basil", &[]), ("cilantro", &[]), ("parsley", &[]), ("thyme", &[]),
+        ("rosemary", &[]), ("oregano", &[]), ("dill", &[]), ("mint", &[]),
+        ("cumin", &[]), ("paprika", &[]), ("cinnamon", &[]), ("nutmeg", &[]),
+        ("ginger", &[]), ("turmeric", &[]), ("black pepper", &[]), ("cayenne", &[]),
+        ("chili powder", &[]), ("garlic powder", &[]), ("onion powder", &[]),
+        // Pantry staples
+        ("salt", &[]), ("pepper", &[]), ("water", &[]), ("vinegar", &[]),
+        ("broth", &[]), ("stock", &[]),
     ])
 }
