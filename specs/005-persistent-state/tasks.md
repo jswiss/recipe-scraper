@@ -42,10 +42,10 @@
 
 ### Implementation for User Story 1
 
-- [ ] T006 [US1] Implement save_recipe (generate UUID, insert recipe row + ingredients + instructions + tags in a transaction; upsert if source_url exists per FR-003) and get_recipe (SELECT with JOINs for ingredients, instructions, tags; reconstruct ExtractedField enums) in src-tauri/src/storage/repository.rs
-- [ ] T007 [US1] Implement update_recipe (partial field update: only update provided fields, handle notes per FR-016, replace ingredients/instructions/tags if provided, bump updated_at) and delete_recipe (SET deleted=1 soft delete per FR-009) in src-tauri/src/storage/repository.rs
-- [ ] T008 [US1] Implement save_recipe, get_recipe, update_recipe, delete_recipe Tauri commands in src-tauri/src/storage/commands.rs following the existing State<> pattern, and register all four in generate_handler! in src-tauri/src/lib.rs
-- [ ] T009 [US1] Add tests in src-tauri/src/storage/repository.rs: save→get round-trip preserves all fields, save same URL twice updates instead of duplicating (FR-003), update_recipe changes only specified fields, delete_recipe sets soft delete flag, get_recipe returns NotFound for deleted recipes
+- [x] T006 [US1] Implement save_recipe (generate UUID, insert recipe row + ingredients + instructions + tags in a transaction; upsert if source_url exists per FR-003) and get_recipe (SELECT with JOINs for ingredients, instructions, tags; reconstruct ExtractedField enums) in src-tauri/src/storage/repository.rs
+- [x] T007 [US1] Implement update_recipe (partial field update: only update provided fields, handle notes per FR-016, replace ingredients/instructions/tags if provided, bump updated_at) and delete_recipe (SET deleted=1 soft delete per FR-009) in src-tauri/src/storage/repository.rs
+- [x] T008 [US1] Implement save_recipe, get_recipe, update_recipe, delete_recipe Tauri commands in src-tauri/src/storage/commands.rs following the existing State<> pattern, and register all four in generate_handler! in src-tauri/src/lib.rs
+- [x] T009 [US1] Add tests in src-tauri/src/storage/repository.rs: save→get round-trip preserves all fields, save same URL twice updates instead of duplicating (FR-003), update_recipe changes only specified fields, delete_recipe sets soft delete flag, get_recipe returns NotFound for deleted recipes
 
 **Checkpoint**: User Story 1 fully functional — recipes persist, dedup works, edit and delete work
 

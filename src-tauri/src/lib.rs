@@ -5,6 +5,9 @@ pub mod url_ingestion;
 
 use recipe_extraction::extract_recipe;
 use recipe_tagging::{extract_and_tag, tag_recipe};
+use storage::commands::{
+    delete_recipe, get_recipe, save_recipe, update_recipe,
+};
 use url_ingestion::{create_http_client, ingest_url, validate_url};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -38,7 +41,11 @@ pub fn run() {
             validate_url,
             extract_recipe,
             tag_recipe,
-            extract_and_tag
+            extract_and_tag,
+            save_recipe,
+            get_recipe,
+            update_recipe,
+            delete_recipe
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
