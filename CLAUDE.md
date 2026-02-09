@@ -28,6 +28,8 @@ contributions MUST comply with these principles.
 ## Active Technologies
 - Rust 1.77+ (stable toolchain) (003-recipe-extraction)
 - N/A (extraction only; storage is separate feature) (003-recipe-extraction)
+- Rust 1.77+ (stable toolchain) + serde 1.x, thiserror 2.x, tauri 2.x (all already in Cargo.toml; no new dependencies) (004-recipe-tagging)
+- N/A (tagging is compute-only; persistence is a separate feature) (004-recipe-tagging)
 
 ### Rust/Tauri Backend
 - **Rust 1.77+**: Backend language (stable toolchain)
@@ -144,6 +146,7 @@ When building features, verify:
 
 ## Git Workflow
 
+
 ### Branch Strategy
 
 - Create a new branch for each speckit feature: `###-feature-name` (e.g., `001-url-ingestion`)
@@ -185,6 +188,7 @@ test: add tests for <component>
 ```
 
 ## Recent Changes
+- 004-recipe-tagging: Added Rust 1.77+ (stable toolchain) + serde 1.x, thiserror 2.x, tauri 2.x (all already in Cargo.toml; no new dependencies)
 - 003-recipe-extraction: Added Rust 1.77+ (stable toolchain)
 
 - 002-rust-tauri-refactor: Completed Rust/Tauri backend refactor
