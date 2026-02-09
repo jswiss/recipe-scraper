@@ -83,20 +83,22 @@ A user has the app installed on multiple devices. When online, recipes saved on 
 
 ### Functional Requirements
 
+*Note: FR IDs are stable identifiers and not sequentially ordered. FR-015/FR-016 were added during clarification.*
+
 - **FR-001**: System MUST persist all recipe data locally on the user's device, including title, description, ingredients, instructions, prep/cook times, servings, images, nutrition info, extraction source, source URL, and tags.
 - **FR-002**: System MUST load all persisted recipes on app startup without requiring a network connection.
 - **FR-003**: System MUST deduplicate recipes by source URL; re-scraping the same URL updates the existing recipe rather than creating a new entry.
 - **FR-004**: System MUST perform all local data operations (read, write, search, filter) without network access.
 - **FR-005**: System MUST NOT display loading spinners or progress indicators for local data operations.
 - **FR-006**: System MUST support exporting individual recipes or the entire collection as JSON using the schema.org/Recipe vocabulary.
-- **FR-007**: System MUST support importing recipes from schema.org/Recipe JSON (the same format used for export).
+- **FR-007**: System MUST support importing recipes from schema.org/Recipe JSON (the same format used for export). Imported recipes that lack a source URL MUST receive a synthetic URL derived from the recipe title hash for deduplication purposes.
 - **FR-008**: System MUST preserve data integrity during unexpected shutdowns (atomic writes; no partial saves).
 - **FR-009**: System MUST allow users to delete individual recipes from their collection.
 - **FR-015**: System MUST allow users to edit any field of a saved recipe (title, description, ingredients, instructions, times, servings, tags). Edits are persisted and participate in sync.
 - **FR-016**: System MUST provide a personal notes field on each recipe for free-form user annotations. Notes are persisted and synced alongside all other recipe data.
 - **FR-010**: System MUST track when each recipe was first saved and last updated.
 - **FR-011**: System MUST allow users to search and filter recipes by title, ingredients, and tags (cuisine, course, diet) while offline.
-- **FR-012**: System MUST sync recipe data across devices by storing its data file in a cloud-synced location (e.g., iCloud). The OS/cloud storage layer handles file transport; the app does not implement its own sync protocol.
+- **FR-012**: System MUST sync recipe data across devices by exporting an append-only change log as per-device JSONL files to a cloud-synced container (e.g., iCloud). The OS/cloud storage layer handles file transport of these lightweight change files; the app does not implement its own sync protocol. The local SQLite database is never synced directly.
 - **FR-013**: System MUST handle sync conflicts automatically using a last-write-wins strategy at the per-field level. When the same recipe is modified on multiple devices, each field resolves independently to the most recent edit, preserving non-conflicting changes from both devices. Conflict resolution operates at the application layer on top of the file-based sync.
 - **FR-014**: System MUST allow users to back up and restore their entire recipe collection.
 
@@ -128,7 +130,7 @@ A user has the app installed on multiple devices. When online, recipes saved on 
 - Q: When one device deletes a recipe and another device edits it, which wins? → A: Modify wins. The recipe is restored with the edits on all devices; the user can re-delete if intended.
 - Q: What is the expected upper bound on recipe collection size? → A: Up to 5,000 recipes. Performance targets (SC-002) must hold at this scale.
 - Q: What specific export/import format should be used? → A: JSON using schema.org/Recipe vocabulary, the same structured data format the app already extracts.
-- Q: How does sync work between devices? → A: File-based sync via iCloud. The app stores its SQLite data file in an iCloud-accessible directory; the OS handles file transport. No custom sync server or protocol needed.
+- Q: How does sync work between devices? → A: Change-log sync via iCloud. The app keeps its SQLite database local (WAL mode for performance) and writes an append-only change log of per-field mutations. Pending change-log entries are exported as lightweight JSONL files to an iCloud container directory; iCloud handles file transport. On import, the app reads remote device JSONL files and merges changes using per-field last-write-wins. The SQLite database itself is never synced directly (WAL mode produces multiple files that corrupt when synced independently). No custom sync server or protocol needed.
 
 ## Assumptions
 
@@ -136,4 +138,4 @@ A user has the app installed on multiple devices. When online, recipes saved on 
 - Export/import uses JSON with the schema.org/Recipe vocabulary — the same structured data format the app already extracts from websites.
 - Sync is opt-in via the user's existing cloud storage (iCloud); the app does not require account creation or a custom sync server.
 - Image URLs are persisted but images themselves are not cached locally (image caching may be a separate feature).
-- The sync mechanism is file-based: the app stores its SQLite data file in an iCloud-accessible directory, and iCloud handles file transport across devices. No custom sync server or peer-to-peer protocol is needed.
+- The sync mechanism uses a change-log pattern: the app records all mutations in an append-only change log table, exports pending entries as per-device JSONL files to an iCloud container directory, and imports remote device files on sync. The local SQLite database (WAL mode) is never placed directly in iCloud. No custom sync server or peer-to-peer protocol is needed.

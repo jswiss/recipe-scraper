@@ -15,8 +15,8 @@
 
 **Purpose**: Add dependency and create module skeleton
 
-- [ ] T001 Add `rusqlite = { version = "0.38", features = ["bundled"] }` to src-tauri/Cargo.toml and create src-tauri/src/storage/mod.rs with submodule declarations (models, database, repository, change_log, sync, export, backup, commands)
-- [ ] T002 [P] Define StorageError (thiserror enum with Storage, NotFound variants), SavedRecipe, RecipeSummary, SaveResult, SearchQuery, ExportResult, ImportResult, SyncResult, and SyncStatus types in src-tauri/src/storage/models.rs — follow existing serde/thiserror patterns from url_ingestion/models.rs
+- [x] T001 Add `rusqlite = { version = "0.38", features = ["bundled"] }` to src-tauri/Cargo.toml and create src-tauri/src/storage/mod.rs with submodule declarations (models, database, repository, change_log, sync, export, backup, commands)
+- [x] T002 [P] Define StorageError (thiserror enum with Storage, NotFound variants), SavedRecipe, RecipeSummary, SaveResult, SearchQuery, ExportResult, ImportResult, SyncResult, and SyncStatus types in src-tauri/src/storage/models.rs — follow existing serde/thiserror patterns from url_ingestion/models.rs
 
 ---
 
@@ -99,8 +99,9 @@
 - [ ] T021 [US4] Implement merge_changes: for each imported change, compare modified_at with local field timestamp, apply if remote is newer (LWW); handle __deleted field where modify-wins-over-delete per spec clarification in src-tauri/src/storage/sync.rs
 - [ ] T022 [US4] Implement trigger_sync (export + import + merge) and get_sync_status (pending count, last sync time, known devices) Tauri commands in src-tauri/src/storage/commands.rs and register in generate_handler! in src-tauri/src/lib.rs
 - [ ] T023 [US4] Add tests in src-tauri/src/storage/sync.rs: change_log records all mutations, JSONL export/import round-trip, LWW merge picks newer timestamp, identical timestamps use device_id tiebreaker, delete-vs-modify conflict restores recipe (modify wins)
+- [ ] T023a [US4] Implement auto_sync: call trigger_sync on app startup (inside .setup() closure after DB init) and expose a Tauri event listener for iCloud file-change notifications so the frontend can re-trigger sync when remote JSONL files update. Register in src-tauri/src/lib.rs setup and commands.
 
-**Checkpoint**: User Story 4 fully functional — sync exports/imports changes, conflicts resolve correctly
+**Checkpoint**: User Story 4 fully functional — sync exports/imports changes, conflicts resolve correctly, sync triggers automatically on startup and on remote file changes
 
 ---
 
@@ -108,9 +109,12 @@
 
 **Purpose**: Performance validation and code quality
 
-- [ ] T024 Validate <100ms performance for list_recipes and search_recipes with 5,000 synthetic recipes (insert in a loop, time queries) in src-tauri/src/storage/repository.rs tests (SC-002)
+- [ ] T024 Validate <100ms performance for list_recipes, search_recipes, and get_recipe with 5,000 synthetic recipes (insert in a loop, time queries) in src-tauri/src/storage/repository.rs tests (SC-002)
 - [ ] T025 [P] Verify atomic transaction safety: test that a panic/error mid-save leaves DB unchanged (FR-008) in src-tauri/src/storage/repository.rs tests
+- [ ] T025a [P] Verify StorageError propagation for disk-full scenario: confirm that rusqlite SQLITE_FULL errors are caught and returned as StorageError::Storage with a user-friendly message (edge case from spec) in src-tauri/src/storage/repository.rs tests
 - [ ] T026 Run cargo clippy and cargo fmt across all src-tauri/src/storage/ files, fix any warnings
+
+**Note**: SC-005 (sync within 30 seconds) depends on iCloud file transport latency, which is outside application control. The app's contribution is minimizing export/import/merge time, which is validated by T023's round-trip tests. End-to-end sync latency requires manual testing with two physical devices.
 
 ---
 

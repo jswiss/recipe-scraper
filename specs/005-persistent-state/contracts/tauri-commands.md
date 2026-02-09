@@ -155,6 +155,8 @@ Searches and filters recipes by title, ingredients, and tags (FR-011).
     source_url: string,
     title: string | null,
     description: string | null,
+    prep_time_minutes: number | null,
+    cook_time_minutes: number | null,
     tags: TagSet,
     created_at: string,
     updated_at: string

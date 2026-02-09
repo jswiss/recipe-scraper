@@ -63,6 +63,8 @@ src-tauri/src/
     ├── mod.rs                 # Module exports
     ├── models.rs              # SavedRecipe, StorageError, SaveResult, SyncStatus
     ├── database.rs            # Database struct, Mutex<Connection>, migrations
+    ├── migrations/            # SQL migration files
+    │   └── 001_initial.sql    # Initial schema (all tables + indexes)
     ├── repository.rs          # CRUD: save, get, list, search, update, delete
     ├── change_log.rs          # Append entries, query pending, mark synced
     ├── sync.rs                # Export to iCloud, import from remote, merge LWW
