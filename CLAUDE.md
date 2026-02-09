@@ -146,6 +146,7 @@ When building features, verify:
 
 ## Git Workflow
 
+
 ### Branch Strategy
 
 - Create a new branch for each speckit feature: `###-feature-name` (e.g., `001-url-ingestion`)
