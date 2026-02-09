@@ -40,3 +40,25 @@ pub async fn update_recipe(
 pub async fn delete_recipe(id: String, db: State<'_, Database>) -> Result<DeleteResult, StorageError> {
     repository::delete_recipe(&db, &id)
 }
+
+#[tauri::command]
+pub async fn list_recipes(db: State<'_, Database>) -> Result<Vec<RecipeSummary>, StorageError> {
+    repository::list_recipes(&db)
+}
+
+#[tauri::command]
+pub async fn search_recipes(
+    query: Option<String>,
+    cuisine_tags: Option<Vec<String>>,
+    course_tags: Option<Vec<String>>,
+    diet_tags: Option<Vec<String>>,
+    db: State<'_, Database>,
+) -> Result<Vec<RecipeSummary>, StorageError> {
+    let sq = SearchQuery {
+        query,
+        cuisine_tags,
+        course_tags,
+        diet_tags,
+    };
+    repository::search_recipes(&db, &sq)
+}

@@ -557,6 +557,134 @@ pub fn delete_recipe(db: &Database, id: &str) -> Result<DeleteResult, StorageErr
     Ok(DeleteResult { deleted: rows > 0 })
 }
 
+pub fn list_recipes(db: &Database) -> Result<Vec<RecipeSummary>, StorageError> {
+    let conn = db.conn.lock().map_err(|e| StorageError::Storage {
+        message: format!("Failed to acquire lock: {e}"),
+    })?;
+
+    let mut stmt = conn
+        .prepare(
+            "SELECT id, source_url, title, description, prep_time_minutes, cook_time_minutes,
+                    created_at, updated_at
+             FROM recipes WHERE deleted = 0 ORDER BY updated_at DESC",
+        )
+        .map_err(|e| StorageError::Storage { message: format!("Failed to prepare: {e}") })?;
+
+    let rows: Vec<(String, String, Option<String>, Option<String>, Option<i64>, Option<i64>, String, String)> = stmt
+        .query_map([], |row| {
+            Ok((
+                row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?,
+                row.get(4)?, row.get(5)?, row.get(6)?, row.get(7)?,
+            ))
+        })
+        .map_err(|e| StorageError::Storage { message: format!("Query failed: {e}") })?
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|e| StorageError::Storage { message: format!("Collect failed: {e}") })?;
+
+    let mut summaries = Vec::with_capacity(rows.len());
+    for (id, source_url, title, description, prep, cook, created_at, updated_at) in rows {
+        let tag_rows = load_tag_rows(&conn, &id)?;
+        let tags = rows_to_tag_set(&tag_rows);
+        summaries.push(RecipeSummary {
+            id,
+            source_url,
+            title,
+            description,
+            prep_time_minutes: prep.map(|v| v as u32),
+            cook_time_minutes: cook.map(|v| v as u32),
+            tags,
+            created_at,
+            updated_at,
+        });
+    }
+
+    Ok(summaries)
+}
+
+pub fn search_recipes(db: &Database, query: &SearchQuery) -> Result<Vec<RecipeSummary>, StorageError> {
+    let conn = db.conn.lock().map_err(|e| StorageError::Storage {
+        message: format!("Failed to acquire lock: {e}"),
+    })?;
+
+    let mut sql = String::from(
+        "SELECT DISTINCT r.id, r.source_url, r.title, r.description,
+                r.prep_time_minutes, r.cook_time_minutes, r.created_at, r.updated_at
+         FROM recipes r"
+    );
+    let mut conditions = vec!["r.deleted = 0".to_string()];
+    let mut param_values: Vec<Box<dyn rusqlite::types::ToSql>> = Vec::new();
+    let mut param_idx = 0usize;
+
+    // Text search on title and ingredient names
+    if let Some(text) = &query.query {
+        if !text.is_empty() {
+            sql.push_str(" LEFT JOIN ingredients i ON r.id = i.recipe_id");
+            let pattern = format!("%{text}%");
+            param_values.push(Box::new(pattern.clone()));
+            param_idx += 1;
+            let idx1 = param_idx;
+            param_values.push(Box::new(pattern));
+            param_idx += 1;
+            let idx2 = param_idx;
+            conditions.push(format!("(r.title LIKE ?{idx1} OR i.name LIKE ?{idx2})"));
+        }
+    }
+
+    // Tag filters
+    for (domain, tags) in [
+        ("cuisine", query.cuisine_tags.as_deref().unwrap_or(&[])),
+        ("course", query.course_tags.as_deref().unwrap_or(&[])),
+        ("diet", query.diet_tags.as_deref().unwrap_or(&[])),
+    ] {
+        for tag_label in tags {
+            param_values.push(Box::new(domain.to_string()));
+            param_idx += 1;
+            let d_idx = param_idx;
+            param_values.push(Box::new(tag_label.clone()));
+            param_idx += 1;
+            let l_idx = param_idx;
+            conditions.push(format!(
+                "EXISTS (SELECT 1 FROM tags t WHERE t.recipe_id = r.id AND t.domain = ?{d_idx} AND t.label = ?{l_idx})"
+            ));
+        }
+    }
+
+    sql.push_str(" WHERE ");
+    sql.push_str(&conditions.join(" AND "));
+    sql.push_str(" ORDER BY r.updated_at DESC");
+
+    let mut stmt = conn.prepare(&sql).map_err(|e| StorageError::Storage {
+        message: format!("Failed to prepare search: {e}"),
+    })?;
+
+    let param_refs: Vec<&dyn rusqlite::types::ToSql> = param_values.iter().map(|p| p.as_ref()).collect();
+
+    let rows: Vec<(String, String, Option<String>, Option<String>, Option<i64>, Option<i64>, String, String)> = stmt
+        .query_map(param_refs.as_slice(), |row| {
+            Ok((
+                row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?,
+                row.get(4)?, row.get(5)?, row.get(6)?, row.get(7)?,
+            ))
+        })
+        .map_err(|e| StorageError::Storage { message: format!("Search failed: {e}") })?
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|e| StorageError::Storage { message: format!("Collect failed: {e}") })?;
+
+    let mut summaries = Vec::with_capacity(rows.len());
+    for (id, source_url, title, description, prep, cook, created_at, updated_at) in rows {
+        let tag_rows = load_tag_rows(&conn, &id)?;
+        let tags = rows_to_tag_set(&tag_rows);
+        summaries.push(RecipeSummary {
+            id, source_url, title, description,
+            prep_time_minutes: prep.map(|v| v as u32),
+            cook_time_minutes: cook.map(|v| v as u32),
+            tags, created_at, updated_at,
+        });
+    }
+
+    Ok(summaries)
+}
+
 /// Helper for ExtractedField status extraction (generic version).
 fn extracted_field_to_columns_generic<T>(field: &ExtractedField<T>) -> (&str, ()) {
     match field {
@@ -706,5 +834,101 @@ mod tests {
         let db = test_db();
         let err = get_recipe(&db, "nonexistent-id").unwrap_err();
         assert!(matches!(err, StorageError::NotFound { .. }));
+    }
+
+    // --- Phase 4 (T012): list and search tests ---
+
+    fn save_test_recipe(db: &Database, url: &str, title: &str, cuisine: &str) -> String {
+        let mut recipe = sample_recipe();
+        recipe.title = ExtractedField::found(title.to_string());
+        let tags = TagSet {
+            cuisine: vec![Tag::new(cuisine, 0.9)],
+            course: vec![Tag::new("dinner", 0.8)],
+            diet: vec![],
+        };
+        save_recipe(db, SaveRecipeInput {
+            recipe: &recipe, tags: &tags, source_url: url,
+        }).unwrap().id
+    }
+
+    #[test]
+    fn list_returns_all_non_deleted_sorted_by_updated() {
+        let db = test_db();
+        save_test_recipe(&db, "https://a.com", "Alpha", "Italian");
+        save_test_recipe(&db, "https://b.com", "Beta", "Thai");
+        save_test_recipe(&db, "https://c.com", "Gamma", "Mexican");
+
+        let list = list_recipes(&db).unwrap();
+        assert_eq!(list.len(), 3);
+        // Most recently saved should be first
+        assert_eq!(list[0].title.as_deref(), Some("Gamma"));
+    }
+
+    #[test]
+    fn list_excludes_deleted() {
+        let db = test_db();
+        let id = save_test_recipe(&db, "https://a.com", "Alpha", "Italian");
+        save_test_recipe(&db, "https://b.com", "Beta", "Thai");
+        delete_recipe(&db, &id).unwrap();
+
+        let list = list_recipes(&db).unwrap();
+        assert_eq!(list.len(), 1);
+        assert_eq!(list[0].title.as_deref(), Some("Beta"));
+    }
+
+    #[test]
+    fn search_by_title_substring() {
+        let db = test_db();
+        save_test_recipe(&db, "https://a.com", "Chicken Alfredo", "Italian");
+        save_test_recipe(&db, "https://b.com", "Beef Stew", "French");
+
+        let results = search_recipes(&db, &SearchQuery {
+            query: Some("Alfredo".into()),
+            ..Default::default()
+        }).unwrap();
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].title.as_deref(), Some("Chicken Alfredo"));
+    }
+
+    #[test]
+    fn search_by_ingredient_name() {
+        let db = test_db();
+        // sample_recipe has "pasta" and "olive oil" as ingredients
+        save_test_recipe(&db, "https://a.com", "Recipe A", "Italian");
+
+        let results = search_recipes(&db, &SearchQuery {
+            query: Some("olive oil".into()),
+            ..Default::default()
+        }).unwrap();
+        assert_eq!(results.len(), 1);
+    }
+
+    #[test]
+    fn search_filter_by_cuisine_tag() {
+        let db = test_db();
+        save_test_recipe(&db, "https://a.com", "Spaghetti", "Italian");
+        save_test_recipe(&db, "https://b.com", "Pad Thai", "Thai");
+
+        let results = search_recipes(&db, &SearchQuery {
+            cuisine_tags: Some(vec!["Italian".into()]),
+            ..Default::default()
+        }).unwrap();
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].title.as_deref(), Some("Spaghetti"));
+    }
+
+    #[test]
+    fn search_combined_text_and_tag() {
+        let db = test_db();
+        save_test_recipe(&db, "https://a.com", "Chicken Pasta", "Italian");
+        save_test_recipe(&db, "https://b.com", "Chicken Curry", "Indian");
+
+        let results = search_recipes(&db, &SearchQuery {
+            query: Some("Chicken".into()),
+            cuisine_tags: Some(vec!["Italian".into()]),
+            ..Default::default()
+        }).unwrap();
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].title.as_deref(), Some("Chicken Pasta"));
     }
 }

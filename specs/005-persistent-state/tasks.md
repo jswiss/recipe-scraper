@@ -59,9 +59,9 @@
 
 ### Implementation for User Story 2
 
-- [ ] T010 [US2] Implement list_recipes (SELECT non-deleted recipes with tags, sorted by updated_at DESC) and search_recipes (case-insensitive LIKE on title + ingredient names, AND filtering on cuisine/course/diet tag labels) in src-tauri/src/storage/repository.rs
-- [ ] T011 [US2] Implement list_recipes and search_recipes Tauri commands in src-tauri/src/storage/commands.rs and register in generate_handler! in src-tauri/src/lib.rs
-- [ ] T012 [US2] Add tests in src-tauri/src/storage/repository.rs: list returns all non-deleted sorted by updated_at, search by title substring, search by ingredient name, filter by cuisine tag, filter by multiple tags (AND logic), combined text+tag query
+- [x] T010 [US2] Implement list_recipes (SELECT non-deleted recipes with tags, sorted by updated_at DESC) and search_recipes (case-insensitive LIKE on title + ingredient names, AND filtering on cuisine/course/diet tag labels) in src-tauri/src/storage/repository.rs
+- [x] T011 [US2] Implement list_recipes and search_recipes Tauri commands in src-tauri/src/storage/commands.rs and register in generate_handler! in src-tauri/src/lib.rs
+- [x] T012 [US2] Add tests in src-tauri/src/storage/repository.rs: list returns all non-deleted sorted by updated_at, search by title substring, search by ingredient name, filter by cuisine tag, filter by multiple tags (AND logic), combined text+tag query
 
 **Checkpoint**: User Story 2 fully functional — browse and search work offline with correct filtering
 
