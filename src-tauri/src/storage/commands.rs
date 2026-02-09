@@ -3,7 +3,9 @@ use tauri::State;
 use crate::recipe_extraction::ExtractedRecipe;
 use crate::recipe_tagging::TagSet;
 
+use super::backup;
 use super::database::Database;
+use super::export;
 use super::models::*;
 use super::repository;
 
@@ -61,4 +63,46 @@ pub async fn search_recipes(
         diet_tags,
     };
     repository::search_recipes(&db, &sq)
+}
+
+#[tauri::command]
+pub async fn export_recipes(
+    recipe_ids: Option<Vec<String>>,
+    file_path: String,
+    db: State<'_, Database>,
+) -> Result<ExportResult, StorageError> {
+    export::export_recipes_to_file(&db, recipe_ids.as_deref(), &file_path)
+}
+
+#[tauri::command]
+pub async fn import_recipes(
+    file_path: String,
+    db: State<'_, Database>,
+) -> Result<ImportResult, StorageError> {
+    export::import_recipes_from_file(&db, &file_path)
+}
+
+#[tauri::command]
+pub async fn backup_collection(
+    file_path: String,
+    db: State<'_, Database>,
+) -> Result<BackupResult, StorageError> {
+    let (recipe_count, path) = backup::backup_collection_to(&db, &file_path)?;
+    let size_bytes = std::fs::metadata(&path)
+        .map(|m| m.len() as i64)
+        .unwrap_or(0);
+    Ok(BackupResult {
+        file_path: path,
+        recipe_count,
+        size_bytes,
+    })
+}
+
+#[tauri::command]
+pub async fn restore_collection(
+    file_path: String,
+    db: State<'_, Database>,
+) -> Result<RestoreResult, StorageError> {
+    let recipe_count = backup::restore_collection_from(&db, &file_path)?;
+    Ok(RestoreResult { recipe_count })
 }

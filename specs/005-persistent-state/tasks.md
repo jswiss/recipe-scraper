@@ -75,11 +75,11 @@
 
 ### Implementation for User Story 3
 
-- [ ] T013 [P] [US3] Create SchemaOrgRecipe, SchemaOrgHowToStep, SchemaOrgNutrition serialization structs with #[serde(rename_all = "camelCase")] and implement bidirectional conversion (SavedRecipe ↔ SchemaOrgRecipe) in src-tauri/src/storage/export.rs
-- [ ] T014 [US3] Implement export_recipes (load from DB → convert → write JSON array to file) and import_recipes (read file → parse → dedup by source_url → save to DB, return imported/updated/skipped counts) in src-tauri/src/storage/export.rs
-- [ ] T015 [P] [US3] Implement backup_collection (use rusqlite backup API to copy DB to file_path) and restore_collection (validate backup integrity, replace current DB) in src-tauri/src/storage/backup.rs
-- [ ] T016 [US3] Implement export_recipes, import_recipes, backup_collection, restore_collection Tauri commands in src-tauri/src/storage/commands.rs and register in generate_handler! in src-tauri/src/lib.rs
-- [ ] T017 [US3] Add tests in src-tauri/src/storage/export.rs: export→import round-trip with 100% data fidelity (SC-004), schema.org JSON structure validation (@context, @type fields), import dedup by source_url, import with malformed entries returns errors for skipped items
+- [x] T013 [P] [US3] Create SchemaOrgRecipe, SchemaOrgHowToStep, SchemaOrgNutrition serialization structs with #[serde(rename_all = "camelCase")] and implement bidirectional conversion (SavedRecipe ↔ SchemaOrgRecipe) in src-tauri/src/storage/export.rs
+- [x] T014 [US3] Implement export_recipes (load from DB → convert → write JSON array to file) and import_recipes (read file → parse → dedup by source_url → save to DB, return imported/updated/skipped counts) in src-tauri/src/storage/export.rs
+- [x] T015 [P] [US3] Implement backup_collection (use rusqlite backup API to copy DB to file_path) and restore_collection (validate backup integrity, replace current DB) in src-tauri/src/storage/backup.rs
+- [x] T016 [US3] Implement export_recipes, import_recipes, backup_collection, restore_collection Tauri commands in src-tauri/src/storage/commands.rs and register in generate_handler! in src-tauri/src/lib.rs
+- [x] T017 [US3] Add tests in src-tauri/src/storage/export.rs: export→import round-trip with 100% data fidelity (SC-004), schema.org JSON structure validation (@context, @type fields), import dedup by source_url, import with malformed entries returns errors for skipped items
 
 **Checkpoint**: User Story 3 fully functional — export/import preserves all data, backup/restore works
 
