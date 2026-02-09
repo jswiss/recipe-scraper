@@ -8,6 +8,7 @@ use super::database::Database;
 use super::export;
 use super::models::*;
 use super::repository;
+use super::sync;
 
 #[tauri::command]
 pub async fn save_recipe(
@@ -105,4 +106,17 @@ pub async fn restore_collection(
 ) -> Result<RestoreResult, StorageError> {
     let recipe_count = backup::restore_collection_from(&db, &file_path)?;
     Ok(RestoreResult { recipe_count })
+}
+
+#[tauri::command]
+pub async fn trigger_sync(
+    sync_dir: String,
+    db: State<'_, Database>,
+) -> Result<SyncResult, StorageError> {
+    sync::trigger_sync(&db, std::path::Path::new(&sync_dir))
+}
+
+#[tauri::command]
+pub async fn get_sync_status(db: State<'_, Database>) -> Result<SyncStatus, StorageError> {
+    sync::get_sync_status(&db)
 }

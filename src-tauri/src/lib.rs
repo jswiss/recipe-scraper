@@ -6,8 +6,9 @@ pub mod url_ingestion;
 use recipe_extraction::extract_recipe;
 use recipe_tagging::{extract_and_tag, tag_recipe};
 use storage::commands::{
-    backup_collection, delete_recipe, export_recipes, get_recipe, import_recipes, list_recipes,
-    restore_collection, save_recipe, search_recipes, update_recipe,
+    backup_collection, delete_recipe, export_recipes, get_recipe, get_sync_status,
+    import_recipes, list_recipes, restore_collection, save_recipe, search_recipes,
+    trigger_sync, update_recipe,
 };
 use url_ingestion::{create_http_client, ingest_url, validate_url};
 
@@ -52,7 +53,9 @@ pub fn run() {
             export_recipes,
             import_recipes,
             backup_collection,
-            restore_collection
+            restore_collection,
+            trigger_sync,
+            get_sync_status
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -93,13 +93,13 @@
 
 ### Implementation for User Story 4
 
-- [ ] T018 [US4] Implement append_change (record recipe_id, field_name, field_value, timestamp, device_id), query_pending (WHERE synced=0), and mark_synced (SET synced=1) in src-tauri/src/storage/change_log.rs
-- [ ] T019 [US4] Integrate change_log recording into save_recipe, update_recipe, and delete_recipe — each write appends per-field change_log entries within the same transaction in src-tauri/src/storage/repository.rs
-- [ ] T020 [US4] Implement sync_export (SELECT pending changes → write JSONL to iCloud container path as changes-{device_id}.jsonl → mark synced) and sync_import (read remote device JSONL files → INSERT into change_log) in src-tauri/src/storage/sync.rs
-- [ ] T021 [US4] Implement merge_changes: for each imported change, compare modified_at with local field timestamp, apply if remote is newer (LWW); handle __deleted field where modify-wins-over-delete per spec clarification in src-tauri/src/storage/sync.rs
-- [ ] T022 [US4] Implement trigger_sync (export + import + merge) and get_sync_status (pending count, last sync time, known devices) Tauri commands in src-tauri/src/storage/commands.rs and register in generate_handler! in src-tauri/src/lib.rs
-- [ ] T023 [US4] Add tests in src-tauri/src/storage/sync.rs: change_log records all mutations, JSONL export/import round-trip, LWW merge picks newer timestamp, identical timestamps use device_id tiebreaker, delete-vs-modify conflict restores recipe (modify wins)
-- [ ] T023a [US4] Implement auto_sync: call trigger_sync on app startup (inside .setup() closure after DB init) and expose a Tauri event listener for iCloud file-change notifications so the frontend can re-trigger sync when remote JSONL files update. Register in src-tauri/src/lib.rs setup and commands.
+- [x] T018 [US4] Implement append_change (record recipe_id, field_name, field_value, timestamp, device_id), query_pending (WHERE synced=0), and mark_synced (SET synced=1) in src-tauri/src/storage/change_log.rs
+- [x] T019 [US4] Integrate change_log recording into save_recipe, update_recipe, and delete_recipe — each write appends per-field change_log entries within the same transaction in src-tauri/src/storage/repository.rs
+- [x] T020 [US4] Implement sync_export (SELECT pending changes → write JSONL to iCloud container path as changes-{device_id}.jsonl → mark synced) and sync_import (read remote device JSONL files → INSERT into change_log) in src-tauri/src/storage/sync.rs
+- [x] T021 [US4] Implement merge_changes: for each imported change, compare modified_at with local field timestamp, apply if remote is newer (LWW); handle __deleted field where modify-wins-over-delete per spec clarification in src-tauri/src/storage/sync.rs
+- [x] T022 [US4] Implement trigger_sync (export + import + merge) and get_sync_status (pending count, last sync time, known devices) Tauri commands in src-tauri/src/storage/commands.rs and register in generate_handler! in src-tauri/src/lib.rs
+- [x] T023 [US4] Add tests in src-tauri/src/storage/sync.rs: change_log records all mutations, JSONL export/import round-trip, LWW merge picks newer timestamp, identical timestamps use device_id tiebreaker, delete-vs-modify conflict restores recipe (modify wins)
+- [x] T023a [US4] Implement auto_sync: call trigger_sync on app startup (inside .setup() closure after DB init) and expose a Tauri event listener for iCloud file-change notifications so the frontend can re-trigger sync when remote JSONL files update. Register in src-tauri/src/lib.rs setup and commands.
 
 **Checkpoint**: User Story 4 fully functional — sync exports/imports changes, conflicts resolve correctly, sync triggers automatically on startup and on remote file changes
 

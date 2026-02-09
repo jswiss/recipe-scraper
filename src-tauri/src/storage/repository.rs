@@ -3,7 +3,7 @@ use rusqlite::params;
 use crate::recipe_extraction::{ExtractedField, ExtractionSource, Ingredient, Instruction};
 use crate::recipe_tagging::TagSet;
 
-use super::change_log::now_utc;
+use super::change_log::{self, now_utc};
 use super::database::Database;
 use super::models::*;
 
@@ -109,6 +109,9 @@ fn insert_recipe(
     insert_instructions(&tx, id, &input.recipe.instructions)?;
     insert_tags(&tx, id, input.tags)?;
 
+    // Record change log entries for all fields
+    log_all_recipe_fields(&tx, id, input.recipe, input.tags, device_id)?;
+
     tx.commit().map_err(|e| StorageError::Storage {
         message: format!("Failed to commit: {e}"),
     })?;
@@ -193,6 +196,8 @@ fn update_recipe_fields(
     insert_ingredients(&tx, id, &recipe.ingredients)?;
     insert_instructions(&tx, id, &recipe.instructions)?;
     insert_tags(&tx, id, tags)?;
+
+    log_all_recipe_fields(&tx, id, recipe, tags, device_id)?;
 
     tx.commit().map_err(|e| StorageError::Storage {
         message: format!("Failed to commit: {e}"),
@@ -532,6 +537,26 @@ pub fn update_recipe(db: &Database, id: &str, fields: &UpdateFields) -> Result<U
     tx.execute("UPDATE recipes SET updated_at=?1, device_id=?2 WHERE id=?3", params![now, db.device_id, id])
         .map_err(|e| StorageError::Storage { message: format!("Update failed: {e}") })?;
 
+    // Record change log for each updated field
+    if let Some(v) = &fields.title { change_log::append_change(&tx, id, "title", Some(v), &db.device_id)?; }
+    if let Some(v) = &fields.description { change_log::append_change(&tx, id, "description", Some(v), &db.device_id)?; }
+    if let Some(v) = &fields.servings { change_log::append_change(&tx, id, "servings", Some(v), &db.device_id)?; }
+    if let Some(v) = &fields.prep_time_minutes { change_log::append_change(&tx, id, "prep_time_minutes", Some(&v.to_string()), &db.device_id)?; }
+    if let Some(v) = &fields.cook_time_minutes { change_log::append_change(&tx, id, "cook_time_minutes", Some(&v.to_string()), &db.device_id)?; }
+    if let Some(v) = &fields.notes { change_log::append_change(&tx, id, "notes", Some(v), &db.device_id)?; }
+    if let Some(v) = &fields.ingredients {
+        let json = serde_json::to_string(v).unwrap_or_default();
+        change_log::append_change(&tx, id, "ingredients", Some(&json), &db.device_id)?;
+    }
+    if let Some(v) = &fields.instructions {
+        let json = serde_json::to_string(v).unwrap_or_default();
+        change_log::append_change(&tx, id, "instructions", Some(&json), &db.device_id)?;
+    }
+    if let Some(v) = &fields.tags {
+        let json = serde_json::to_string(v).unwrap_or_default();
+        change_log::append_change(&tx, id, "tags", Some(&json), &db.device_id)?;
+    }
+
     tx.commit().map_err(|e| StorageError::Storage {
         message: format!("Failed to commit: {e}"),
     })?;
@@ -545,7 +570,11 @@ pub fn delete_recipe(db: &Database, id: &str) -> Result<DeleteResult, StorageErr
     })?;
 
     let now = now_utc();
-    let rows = conn
+    let tx = conn.unchecked_transaction().map_err(|e| StorageError::Storage {
+        message: format!("Failed to begin transaction: {e}"),
+    })?;
+
+    let rows = tx
         .execute(
             "UPDATE recipes SET deleted = 1, updated_at = ?1, device_id = ?2 WHERE id = ?3 AND deleted = 0",
             params![now, db.device_id, id],
@@ -553,6 +582,14 @@ pub fn delete_recipe(db: &Database, id: &str) -> Result<DeleteResult, StorageErr
         .map_err(|e| StorageError::Storage {
             message: format!("Failed to delete: {e}"),
         })?;
+
+    if rows > 0 {
+        change_log::append_change(&tx, id, "__deleted", Some("true"), &db.device_id)?;
+    }
+
+    tx.commit().map_err(|e| StorageError::Storage {
+        message: format!("Failed to commit: {e}"),
+    })?;
 
     Ok(DeleteResult { deleted: rows > 0 })
 }
@@ -683,6 +720,27 @@ pub fn search_recipes(db: &Database, query: &SearchQuery) -> Result<Vec<RecipeSu
     }
 
     Ok(summaries)
+}
+
+fn log_all_recipe_fields(
+    conn: &rusqlite::Connection,
+    id: &str,
+    recipe: &crate::recipe_extraction::ExtractedRecipe,
+    tags: &TagSet,
+    device_id: &str,
+) -> Result<(), StorageError> {
+    if let Some(v) = recipe.title.value() { change_log::append_change(conn, id, "title", Some(v), device_id)?; }
+    if let Some(v) = recipe.description.value() { change_log::append_change(conn, id, "description", Some(v), device_id)?; }
+    if let Some(v) = recipe.servings.value() { change_log::append_change(conn, id, "servings", Some(v), device_id)?; }
+    if let Some(v) = recipe.prep_time_minutes.value() { change_log::append_change(conn, id, "prep_time_minutes", Some(&v.to_string()), device_id)?; }
+    if let Some(v) = recipe.cook_time_minutes.value() { change_log::append_change(conn, id, "cook_time_minutes", Some(&v.to_string()), device_id)?; }
+    let ing_json = serde_json::to_string(&recipe.ingredients).unwrap_or_default();
+    change_log::append_change(conn, id, "ingredients", Some(&ing_json), device_id)?;
+    let inst_json = serde_json::to_string(&recipe.instructions).unwrap_or_default();
+    change_log::append_change(conn, id, "instructions", Some(&inst_json), device_id)?;
+    let tags_json = serde_json::to_string(tags).unwrap_or_default();
+    change_log::append_change(conn, id, "tags", Some(&tags_json), device_id)?;
+    Ok(())
 }
 
 /// Helper for ExtractedField status extraction (generic version).
