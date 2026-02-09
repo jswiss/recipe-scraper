@@ -130,7 +130,11 @@ mod tests {
         );
         let tags = tag(&recipe);
         let breakfast = tags.iter().find(|t| t.label == "breakfast");
-        assert!(breakfast.is_some(), "Expected breakfast tag, got: {:?}", tags);
+        assert!(
+            breakfast.is_some(),
+            "Expected breakfast tag, got: {:?}",
+            tags
+        );
         assert!(breakfast.unwrap().confidence > 0.7);
     }
 
@@ -170,7 +174,11 @@ mod tests {
         );
         let tags = tag(&recipe);
         let appetizer = tags.iter().find(|t| t.label == "appetizer");
-        assert!(appetizer.is_some(), "Expected appetizer tag, got: {:?}", tags);
+        assert!(
+            appetizer.is_some(),
+            "Expected appetizer tag, got: {:?}",
+            tags
+        );
     }
 
     #[test]

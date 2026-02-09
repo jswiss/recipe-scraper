@@ -131,9 +131,8 @@ mod tests {
 
     #[test]
     fn test_all_plant_based_vegan_vegetarian() {
-        let recipe = make_recipe_with_ingredients(vec![
-            "rice", "olive oil", "tomato", "basil", "salt",
-        ]);
+        let recipe =
+            make_recipe_with_ingredients(vec!["rice", "olive oil", "tomato", "basil", "salt"]);
         let tags = tag(&recipe);
         let vegan = tags.iter().find(|t| t.label == "vegan");
         let vegetarian = tags.iter().find(|t| t.label == "vegetarian");
@@ -143,12 +142,8 @@ mod tests {
 
     #[test]
     fn test_wheat_flour_not_gluten_free_sc006() {
-        let recipe = make_recipe_with_ingredients(vec![
-            "all-purpose flour",
-            "sugar",
-            "butter",
-            "eggs",
-        ]);
+        let recipe =
+            make_recipe_with_ingredients(vec!["all-purpose flour", "sugar", "butter", "eggs"]);
         let tags = tag(&recipe);
         let gluten_free = tags.iter().find(|t| t.label == "gluten-free");
         assert!(
@@ -165,7 +160,10 @@ mod tests {
         let vegan = tags.iter().find(|t| t.label == "vegan");
         let vegetarian = tags.iter().find(|t| t.label == "vegetarian");
         assert!(vegan.is_none(), "Chicken recipe should not be vegan");
-        assert!(vegetarian.is_none(), "Chicken recipe should not be vegetarian");
+        assert!(
+            vegetarian.is_none(),
+            "Chicken recipe should not be vegetarian"
+        );
     }
 
     #[test]
@@ -181,7 +179,10 @@ mod tests {
     fn test_no_ingredients_fail_safe() {
         let recipe = ExtractedRecipe::empty(ExtractionSource::JsonLd);
         let tags = tag(&recipe);
-        assert!(tags.is_empty(), "No ingredients should yield no diet tags (fail-safe)");
+        assert!(
+            tags.is_empty(),
+            "No ingredients should yield no diet tags (fail-safe)"
+        );
     }
 
     #[test]

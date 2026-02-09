@@ -68,7 +68,7 @@ pub fn tag(recipe: &ExtractedRecipe) -> Vec<Tag> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::recipe_extraction::{ExtractionSource, ExtractedField, Ingredient, Instruction};
+    use crate::recipe_extraction::{ExtractedField, ExtractionSource, Ingredient, Instruction};
 
     fn make_recipe(
         title: Option<&str>,
@@ -121,7 +121,13 @@ mod tests {
     fn test_asian_cuisine_from_ingredients() {
         let recipe = make_recipe(
             Some("Stir-Fry Noodle Bowl"),
-            vec!["soy sauce", "rice noodles", "sesame oil", "ginger", "hoisin"],
+            vec![
+                "soy sauce",
+                "rice noodles",
+                "sesame oil",
+                "ginger",
+                "hoisin",
+            ],
             vec!["stir-fry in wok"],
         );
         let tags = tag(&recipe);
@@ -136,7 +142,10 @@ mod tests {
             vec!["mix together"],
         );
         let tags = tag(&recipe);
-        assert!(tags.is_empty(), "Expected no cuisine tags for generic recipe");
+        assert!(
+            tags.is_empty(),
+            "Expected no cuisine tags for generic recipe"
+        );
     }
 
     #[test]
@@ -147,6 +156,9 @@ mod tests {
             vec!["roast peppers"],
         );
         let tags = tag(&recipe);
-        assert!(!tags.is_empty(), "Should tag from ingredients even without title");
+        assert!(
+            !tags.is_empty(),
+            "Should tag from ingredients even without title"
+        );
     }
 }
