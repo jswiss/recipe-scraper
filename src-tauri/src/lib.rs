@@ -22,6 +22,15 @@ pub fn run() {
                         .build(),
                 )?;
             }
+
+            // Initialize SQLite database
+            use tauri::Manager;
+            let app_data_dir = app.path().app_data_dir()
+                .expect("Failed to resolve app data directory");
+            let db = storage::Database::new(&app_data_dir)
+                .expect("Failed to initialize database");
+            app.manage(db);
+
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

@@ -26,9 +26,9 @@
 
 **CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T003 Write SQL migration with all tables (recipes, ingredients, instructions, tags, change_log, sync_state, schema_version) and indexes per data-model.md in src-tauri/src/storage/migrations/001_initial.sql
-- [ ] T004 Implement Database struct wrapping Mutex<Connection>, with new() that opens SQLite at app_data_dir/recipes.db, sets PRAGMA journal_mode=WAL + foreign_keys=ON + busy_timeout=5000, and runs migrations in src-tauri/src/storage/database.rs
-- [ ] T005 Register `pub mod storage` in src-tauri/src/lib.rs, initialize Database inside .setup() closure using app.path().app_data_dir(), add to .manage(), and verify cargo build succeeds
+- [x] T003 Write SQL migration with all tables (recipes, ingredients, instructions, tags, change_log, sync_state, schema_version) and indexes per data-model.md in src-tauri/src/storage/migrations/001_initial.sql
+- [x] T004 Implement Database struct wrapping Mutex<Connection>, with new() that opens SQLite at app_data_dir/recipes.db, sets PRAGMA journal_mode=WAL + foreign_keys=ON + busy_timeout=5000, and runs migrations in src-tauri/src/storage/database.rs
+- [x] T005 Register `pub mod storage` in src-tauri/src/lib.rs, initialize Database inside .setup() closure using app.path().app_data_dir(), add to .manage(), and verify cargo build succeeds
 
 **Checkpoint**: Database initializes on app startup, schema is created, cargo build passes
 
