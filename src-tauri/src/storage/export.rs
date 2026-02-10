@@ -60,9 +60,15 @@ pub struct SchemaOrgNutrition {
     pub calories: Option<String>,
     #[serde(rename = "fatContent", skip_serializing_if = "Option::is_none")]
     pub fat_content: Option<String>,
-    #[serde(rename = "saturatedFatContent", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "saturatedFatContent",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub saturated_fat_content: Option<String>,
-    #[serde(rename = "carbohydrateContent", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "carbohydrateContent",
+        skip_serializing_if = "Option::is_none"
+    )]
     pub carbohydrate_content: Option<String>,
     #[serde(rename = "fiberContent", skip_serializing_if = "Option::is_none")]
     pub fiber_content: Option<String>,
@@ -110,7 +116,11 @@ pub fn saved_recipe_to_schema_org(recipe: &SavedRecipe) -> SchemaOrgRecipe {
         type_field: "Recipe".into(),
         name: recipe.title.value().cloned(),
         description: recipe.description.value().cloned(),
-        recipe_ingredient: recipe.ingredients.iter().map(|i| i.raw_text.clone()).collect(),
+        recipe_ingredient: recipe
+            .ingredients
+            .iter()
+            .map(|i| i.raw_text.clone())
+            .collect(),
         recipe_instructions: instructions,
         prep_time: recipe.prep_time_minutes.value().map(|m| format!("PT{m}M")),
         cook_time: recipe.cook_time_minutes.value().map(|m| format!("PT{m}M")),
@@ -120,11 +130,20 @@ pub fn saved_recipe_to_schema_org(recipe: &SavedRecipe) -> SchemaOrgRecipe {
         url: Some(recipe.source_url.clone()),
         extraction_source: Some(source_str.into()),
         tags: Some(SchemaOrgTags {
-            cuisine: recipe.tags.cuisine.iter().map(|t| t.label.clone()).collect(),
+            cuisine: recipe
+                .tags
+                .cuisine
+                .iter()
+                .map(|t| t.label.clone())
+                .collect(),
             course: recipe.tags.course.iter().map(|t| t.label.clone()).collect(),
             diet: recipe.tags.diet.iter().map(|t| t.label.clone()).collect(),
         }),
-        notes: if recipe.notes.is_empty() { None } else { Some(recipe.notes.clone()) },
+        notes: if recipe.notes.is_empty() {
+            None
+        } else {
+            Some(recipe.notes.clone())
+        },
     }
 }
 
@@ -194,20 +213,17 @@ pub fn schema_org_to_saved_recipe_input(
     };
 
     // Source URL: use provided URL or generate synthetic from title
-    let source_url = schema
-        .url
-        .clone()
-        .unwrap_or_else(|| {
-            let title_str = schema.name.as_deref().unwrap_or("unknown");
-            let hash = {
-                use std::collections::hash_map::DefaultHasher;
-                use std::hash::{Hash, Hasher};
-                let mut h = DefaultHasher::new();
-                title_str.hash(&mut h);
-                h.finish()
-            };
-            format!("import://title-hash/{hash:016x}")
-        });
+    let source_url = schema.url.clone().unwrap_or_else(|| {
+        let title_str = schema.name.as_deref().unwrap_or("unknown");
+        let hash = {
+            use std::collections::hash_map::DefaultHasher;
+            use std::hash::{Hash, Hasher};
+            let mut h = DefaultHasher::new();
+            title_str.hash(&mut h);
+            h.finish()
+        };
+        format!("import://title-hash/{hash:016x}")
+    });
 
     let recipe = crate::recipe_extraction::ExtractedRecipe {
         title,
@@ -245,7 +261,10 @@ fn schema_org_nutrition_to_info(n: &SchemaOrgNutrition) -> NutritionInfo {
     NutritionInfo {
         calories: n.calories.as_ref().and_then(|s| parse_number(s)),
         fat_grams: n.fat_content.as_ref().and_then(|s| parse_float(s)),
-        saturated_fat_grams: n.saturated_fat_content.as_ref().and_then(|s| parse_float(s)),
+        saturated_fat_grams: n
+            .saturated_fat_content
+            .as_ref()
+            .and_then(|s| parse_float(s)),
         carbs_grams: n.carbohydrate_content.as_ref().and_then(|s| parse_float(s)),
         fiber_grams: n.fiber_content.as_ref().and_then(|s| parse_float(s)),
         sugar_grams: n.sugar_content.as_ref().and_then(|s| parse_float(s)),
@@ -287,14 +306,13 @@ pub fn export_recipes_to_file(
         }
     };
 
-    let schema_recipes: Vec<SchemaOrgRecipe> = recipes
-        .iter()
-        .map(|r| saved_recipe_to_schema_org(r))
-        .collect();
+    let schema_recipes: Vec<SchemaOrgRecipe> =
+        recipes.iter().map(saved_recipe_to_schema_org).collect();
 
-    let json = serde_json::to_string_pretty(&schema_recipes).map_err(|e| StorageError::Storage {
-        message: format!("Failed to serialize: {e}"),
-    })?;
+    let json =
+        serde_json::to_string_pretty(&schema_recipes).map_err(|e| StorageError::Storage {
+            message: format!("Failed to serialize: {e}"),
+        })?;
 
     std::fs::write(file_path, json).map_err(|e| StorageError::Storage {
         message: format!("Failed to write file: {e}"),
@@ -314,9 +332,10 @@ pub fn import_recipes_from_file(
         message: format!("Failed to read file: {e}"),
     })?;
 
-    let schemas: Vec<serde_json::Value> = serde_json::from_str(&content).map_err(|e| StorageError::Storage {
-        message: format!("Failed to parse JSON: {e}"),
-    })?;
+    let schemas: Vec<serde_json::Value> =
+        serde_json::from_str(&content).map_err(|e| StorageError::Storage {
+            message: format!("Failed to parse JSON: {e}"),
+        })?;
 
     let mut imported = 0i64;
     let mut updated = 0i64;
@@ -376,7 +395,12 @@ mod tests {
         let recipe = ExtractedRecipe {
             title: ExtractedField::found("Test Pasta".into()),
             description: ExtractedField::found("Delicious".into()),
-            ingredients: vec![Ingredient::new("pasta", Some(200.0), Some("g".into()), "200g pasta")],
+            ingredients: vec![Ingredient::new(
+                "pasta",
+                Some(200.0),
+                Some("g".into()),
+                "200g pasta",
+            )],
             instructions: vec![Instruction::new(1, "Cook it")],
             prep_time_minutes: ExtractedField::found(10),
             cook_time_minutes: ExtractedField::found(20),
@@ -394,15 +418,22 @@ mod tests {
             course: vec![],
             diet: vec![],
         };
-        repository::save_recipe(db, SaveRecipeInput {
-            recipe: &recipe, tags: &tags, source_url: "https://example.com/test",
-        }).unwrap().id
+        repository::save_recipe(
+            db,
+            SaveRecipeInput {
+                recipe: &recipe,
+                tags: &tags,
+                source_url: "https://example.com/test",
+            },
+        )
+        .unwrap()
+        .id
     }
 
     #[test]
     fn export_import_round_trip() {
         let db = test_db();
-        let id = save_sample(&db);
+        let _id = save_sample(&db);
 
         let dir = std::env::temp_dir().join("recipe_test_export");
         std::fs::create_dir_all(&dir).unwrap();

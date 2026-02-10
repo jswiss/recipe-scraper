@@ -6,9 +6,8 @@ pub mod url_ingestion;
 use recipe_extraction::extract_recipe;
 use recipe_tagging::{extract_and_tag, tag_recipe};
 use storage::commands::{
-    backup_collection, delete_recipe, export_recipes, get_recipe, get_sync_status,
-    import_recipes, list_recipes, restore_collection, save_recipe, search_recipes,
-    trigger_sync, update_recipe,
+    backup_collection, delete_recipe, export_recipes, get_recipe, get_sync_status, import_recipes,
+    list_recipes, restore_collection, save_recipe, search_recipes, trigger_sync, update_recipe,
 };
 use url_ingestion::{create_http_client, ingest_url, validate_url};
 
@@ -30,10 +29,11 @@ pub fn run() {
 
             // Initialize SQLite database
             use tauri::Manager;
-            let app_data_dir = app.path().app_data_dir()
+            let app_data_dir = app
+                .path()
+                .app_data_dir()
                 .expect("Failed to resolve app data directory");
-            let db = storage::Database::new(&app_data_dir)
-                .expect("Failed to initialize database");
+            let db = storage::Database::new(&app_data_dir).expect("Failed to initialize database");
             app.manage(db);
 
             Ok(())

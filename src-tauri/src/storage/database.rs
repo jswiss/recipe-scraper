@@ -100,9 +100,10 @@ impl Database {
         for (i, migration) in MIGRATIONS.iter().enumerate() {
             let version = (i + 1) as i64;
             if version > current_version {
-                conn.execute_batch(migration).map_err(|e| StorageError::Storage {
-                    message: format!("Migration {version} failed: {e}"),
-                })?;
+                conn.execute_batch(migration)
+                    .map_err(|e| StorageError::Storage {
+                        message: format!("Migration {version} failed: {e}"),
+                    })?;
 
                 let now = super::change_log::now_utc();
                 conn.execute(

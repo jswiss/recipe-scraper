@@ -11,10 +11,11 @@ pub fn backup_collection_to(db: &Database, file_path: &str) -> Result<(i64, Stri
             message: format!("Failed to open backup file: {e}"),
         })?;
 
-    let backup = rusqlite::backup::Backup::new(&conn, &mut backup_conn)
-        .map_err(|e| StorageError::Storage {
+    let backup = rusqlite::backup::Backup::new(&conn, &mut backup_conn).map_err(|e| {
+        StorageError::Storage {
             message: format!("Failed to create backup: {e}"),
-        })?;
+        }
+    })?;
 
     backup
         .run_to_completion(100, std::time::Duration::from_millis(50), None)
@@ -39,10 +40,9 @@ pub fn backup_collection_to(db: &Database, file_path: &str) -> Result<(i64, Stri
 
 pub fn restore_collection_from(db: &Database, file_path: &str) -> Result<i64, StorageError> {
     // Validate the backup by opening it and checking schema
-    let backup_conn =
-        rusqlite::Connection::open(file_path).map_err(|e| StorageError::Storage {
-            message: format!("Failed to open backup file: {e}"),
-        })?;
+    let backup_conn = rusqlite::Connection::open(file_path).map_err(|e| StorageError::Storage {
+        message: format!("Failed to open backup file: {e}"),
+    })?;
 
     let has_recipes: bool = backup_conn
         .query_row(

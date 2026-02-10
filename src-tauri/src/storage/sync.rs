@@ -158,16 +158,20 @@ pub fn merge_changes(db: &Database) -> Result<i64, StorageError> {
 
     // Find all recipe_ids with remote changes (device_id != our device)
     let mut stmt = conn
-        .prepare(
-            "SELECT DISTINCT recipe_id FROM change_log WHERE device_id != ?1",
-        )
-        .map_err(|e| StorageError::Storage { message: format!("Failed to prepare: {e}") })?;
+        .prepare("SELECT DISTINCT recipe_id FROM change_log WHERE device_id != ?1")
+        .map_err(|e| StorageError::Storage {
+            message: format!("Failed to prepare: {e}"),
+        })?;
 
     let recipe_ids: Vec<String> = stmt
         .query_map(rusqlite::params![db.device_id], |row| row.get(0))
-        .map_err(|e| StorageError::Storage { message: format!("Query failed: {e}") })?
+        .map_err(|e| StorageError::Storage {
+            message: format!("Query failed: {e}"),
+        })?
         .collect::<Result<Vec<_>, _>>()
-        .map_err(|e| StorageError::Storage { message: format!("Collect failed: {e}") })?;
+        .map_err(|e| StorageError::Storage {
+            message: format!("Collect failed: {e}"),
+        })?;
 
     let mut merged = 0i64;
 
@@ -179,19 +183,27 @@ pub fn merge_changes(db: &Database) -> Result<i64, StorageError> {
                  WHERE recipe_id = ?1
                  ORDER BY field_name, modified_at DESC, device_id DESC",
             )
-            .map_err(|e| StorageError::Storage { message: format!("Failed to prepare: {e}") })?;
+            .map_err(|e| StorageError::Storage {
+                message: format!("Failed to prepare: {e}"),
+            })?;
 
         let changes: Vec<(String, Option<String>, String, String)> = field_stmt
             .query_map(rusqlite::params![recipe_id], |row| {
                 Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?))
             })
-            .map_err(|e| StorageError::Storage { message: format!("Query failed: {e}") })?
+            .map_err(|e| StorageError::Storage {
+                message: format!("Query failed: {e}"),
+            })?
             .collect::<Result<Vec<_>, _>>()
-            .map_err(|e| StorageError::Storage { message: format!("Collect failed: {e}") })?;
+            .map_err(|e| StorageError::Storage {
+                message: format!("Collect failed: {e}"),
+            })?;
 
         // Group by field_name, keep only the latest per field
-        let mut latest_by_field: std::collections::HashMap<String, (Option<String>, String, String)> =
-            std::collections::HashMap::new();
+        let mut latest_by_field: std::collections::HashMap<
+            String,
+            (Option<String>, String, String),
+        > = std::collections::HashMap::new();
         for (field, value, ts, dev) in &changes {
             latest_by_field
                 .entry(field.clone())
@@ -199,9 +211,13 @@ pub fn merge_changes(db: &Database) -> Result<i64, StorageError> {
         }
 
         // Check for delete-vs-modify: if __deleted exists but other fields are newer, restore
-        let deleted_ts = latest_by_field.get("__deleted").map(|(_, ts, _)| ts.clone());
+        let deleted_ts = latest_by_field
+            .get("__deleted")
+            .map(|(_, ts, _)| ts.clone());
         let has_newer_modify = if let Some(del_ts) = &deleted_ts {
-            latest_by_field.iter().any(|(k, (_, ts, _))| k != "__deleted" && ts > del_ts)
+            latest_by_field
+                .iter()
+                .any(|(k, (_, ts, _))| k != "__deleted" && ts > del_ts)
         } else {
             false
         };
@@ -228,7 +244,9 @@ pub fn merge_changes(db: &Database) -> Result<i64, StorageError> {
                     "UPDATE recipes SET deleted = 1 WHERE id = ?1",
                     rusqlite::params![recipe_id],
                 )
-                .map_err(|e| StorageError::Storage { message: format!("Merge failed: {e}") })?;
+                .map_err(|e| StorageError::Storage {
+                    message: format!("Merge failed: {e}"),
+                })?;
                 merged += 1;
                 continue;
             } else {
@@ -237,7 +255,9 @@ pub fn merge_changes(db: &Database) -> Result<i64, StorageError> {
                     "UPDATE recipes SET deleted = 0 WHERE id = ?1",
                     rusqlite::params![recipe_id],
                 )
-                .map_err(|e| StorageError::Storage { message: format!("Merge failed: {e}") })?;
+                .map_err(|e| StorageError::Storage {
+                    message: format!("Merge failed: {e}"),
+                })?;
             }
         }
 
@@ -262,14 +282,20 @@ pub fn merge_changes(db: &Database) -> Result<i64, StorageError> {
                 "notes" => {
                     conn.execute(
                         "UPDATE recipes SET notes = ?1, updated_at = ?2 WHERE id = ?3",
-                        rusqlite::params![value.as_deref().unwrap_or(""), change_log::now_utc(), recipe_id],
-                    ).ok();
+                        rusqlite::params![
+                            value.as_deref().unwrap_or(""),
+                            change_log::now_utc(),
+                            recipe_id
+                        ],
+                    )
+                    .ok();
                 }
                 "servings" | "prep_time_minutes" | "cook_time_minutes" => {
                     conn.execute(
                         &format!("UPDATE recipes SET {field} = ?1, updated_at = ?2 WHERE id = ?3"),
                         rusqlite::params![value, change_log::now_utc(), recipe_id],
-                    ).ok();
+                    )
+                    .ok();
                 }
                 _ => {} // Complex fields (ingredients, instructions, tags) handled separately
             }
@@ -299,12 +325,18 @@ pub fn get_sync_status(db: &Database) -> Result<SyncStatus, StorageError> {
     })?;
 
     let pending_changes: i64 = conn
-        .query_row("SELECT COUNT(*) FROM change_log WHERE synced = 0", [], |row| row.get(0))
+        .query_row(
+            "SELECT COUNT(*) FROM change_log WHERE synced = 0",
+            [],
+            |row| row.get(0),
+        )
         .unwrap_or(0);
 
     let mut stmt = conn
         .prepare("SELECT device_id, last_import_at FROM sync_state")
-        .map_err(|e| StorageError::Storage { message: format!("Failed to prepare: {e}") })?;
+        .map_err(|e| StorageError::Storage {
+            message: format!("Failed to prepare: {e}"),
+        })?;
 
     let known_devices: Vec<KnownDevice> = stmt
         .query_map([], |row| {
@@ -313,9 +345,13 @@ pub fn get_sync_status(db: &Database) -> Result<SyncStatus, StorageError> {
                 last_imported_at: row.get(1)?,
             })
         })
-        .map_err(|e| StorageError::Storage { message: format!("Query failed: {e}") })?
+        .map_err(|e| StorageError::Storage {
+            message: format!("Query failed: {e}"),
+        })?
         .collect::<Result<Vec<_>, _>>()
-        .map_err(|e| StorageError::Storage { message: format!("Collect failed: {e}") })?;
+        .map_err(|e| StorageError::Storage {
+            message: format!("Collect failed: {e}"),
+        })?;
 
     let last_sync_at = known_devices
         .iter()
@@ -333,10 +369,12 @@ pub fn get_sync_status(db: &Database) -> Result<SyncStatus, StorageError> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::recipe_extraction::{ExtractedField, ExtractedRecipe, ExtractionSource, Ingredient, Instruction, NutritionInfo};
-    use crate::recipe_tagging::{Tag, TagSet};
     use super::super::repository;
+    use super::*;
+    use crate::recipe_extraction::{
+        ExtractedField, ExtractedRecipe, ExtractionSource, Ingredient, Instruction,
+    };
+    use crate::recipe_tagging::{Tag, TagSet};
 
     fn test_db() -> Database {
         Database::new_in_memory().expect("Failed to create test DB")
@@ -346,7 +384,12 @@ mod tests {
         let recipe = ExtractedRecipe {
             title: ExtractedField::found("Test Pasta".into()),
             description: ExtractedField::found("Delicious".into()),
-            ingredients: vec![Ingredient::new("pasta", Some(200.0), Some("g".into()), "200g pasta")],
+            ingredients: vec![Ingredient::new(
+                "pasta",
+                Some(200.0),
+                Some("g".into()),
+                "200g pasta",
+            )],
             instructions: vec![Instruction::new(1, "Cook it")],
             prep_time_minutes: ExtractedField::found(10),
             cook_time_minutes: ExtractedField::found(20),
@@ -355,10 +398,21 @@ mod tests {
             nutrition: ExtractedField::not_found("none"),
             source: ExtractionSource::JsonLd,
         };
-        let tags = TagSet { cuisine: vec![Tag::new("Italian", 0.9)], course: vec![], diet: vec![] };
-        repository::save_recipe(db, SaveRecipeInput {
-            recipe: &recipe, tags: &tags, source_url: "https://example.com/test",
-        }).unwrap().id
+        let tags = TagSet {
+            cuisine: vec![Tag::new("Italian", 0.9)],
+            course: vec![],
+            diet: vec![],
+        };
+        repository::save_recipe(
+            db,
+            SaveRecipeInput {
+                recipe: &recipe,
+                tags: &tags,
+                source_url: "https://example.com/test",
+            },
+        )
+        .unwrap()
+        .id
     }
 
     #[test]
@@ -367,7 +421,9 @@ mod tests {
         let _id = save_sample(&db);
 
         let conn = db.conn.lock().unwrap();
-        let count: i64 = conn.query_row("SELECT COUNT(*) FROM change_log", [], |r| r.get(0)).unwrap();
+        let count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM change_log", [], |r| r.get(0))
+            .unwrap();
         assert!(count > 0, "change_log should have entries after save");
     }
 

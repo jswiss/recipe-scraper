@@ -99,9 +99,7 @@ fn chrono_now() -> String {
     // Calculate date from days since epoch (1970-01-01)
     let (year, month, day) = days_to_date(days as i64);
 
-    format!(
-        "{year:04}-{month:02}-{day:02}T{hours:02}:{minutes:02}:{seconds:02}.{micros:06}Z"
-    )
+    format!("{year:04}-{month:02}-{day:02}T{hours:02}:{minutes:02}:{seconds:02}.{micros:06}Z")
 }
 
 /// Exposed for use by repository module.

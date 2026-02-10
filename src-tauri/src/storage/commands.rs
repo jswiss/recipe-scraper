@@ -40,7 +40,10 @@ pub async fn update_recipe(
 }
 
 #[tauri::command]
-pub async fn delete_recipe(id: String, db: State<'_, Database>) -> Result<DeleteResult, StorageError> {
+pub async fn delete_recipe(
+    id: String,
+    db: State<'_, Database>,
+) -> Result<DeleteResult, StorageError> {
     repository::delete_recipe(&db, &id)
 }
 

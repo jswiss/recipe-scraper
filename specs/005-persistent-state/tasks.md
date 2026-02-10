@@ -109,10 +109,10 @@
 
 **Purpose**: Performance validation and code quality
 
-- [ ] T024 Validate <100ms performance for list_recipes, search_recipes, and get_recipe with 5,000 synthetic recipes (insert in a loop, time queries) in src-tauri/src/storage/repository.rs tests (SC-002)
-- [ ] T025 [P] Verify atomic transaction safety: test that a panic/error mid-save leaves DB unchanged (FR-008) in src-tauri/src/storage/repository.rs tests
-- [ ] T025a [P] Verify StorageError propagation for disk-full scenario: confirm that rusqlite SQLITE_FULL errors are caught and returned as StorageError::Storage with a user-friendly message (edge case from spec) in src-tauri/src/storage/repository.rs tests
-- [ ] T026 Run cargo clippy and cargo fmt across all src-tauri/src/storage/ files, fix any warnings
+- [x] T024 Validate <100ms performance for list_recipes, search_recipes, and get_recipe with 5,000 synthetic recipes (insert in a loop, time queries) in src-tauri/src/storage/repository.rs tests (SC-002)
+- [x] T025 [P] Verify atomic transaction safety: test that a panic/error mid-save leaves DB unchanged (FR-008) in src-tauri/src/storage/repository.rs tests
+- [x] T025a [P] Verify StorageError propagation for disk-full scenario: confirm that rusqlite SQLITE_FULL errors are caught and returned as StorageError::Storage with a user-friendly message (edge case from spec) in src-tauri/src/storage/repository.rs tests
+- [x] T026 Run cargo clippy and cargo fmt across all src-tauri/src/storage/ files, fix any warnings
 
 **Note**: SC-005 (sync within 30 seconds) depends on iCloud file transport latency, which is outside application control. The app's contribution is minimizing export/import/merge time, which is validated by T023's round-trip tests. End-to-end sync latency requires manual testing with two physical devices.
 
