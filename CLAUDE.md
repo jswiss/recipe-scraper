@@ -173,6 +173,7 @@ When building features, verify:
    - Create PR at the end of each phase in tasks.md
    - PR into `main` when feature is complete
    - **Limit PRs to ~500 lines of code** - if a phase exceeds this, split into multiple PRs
+   - **Always use `gh pr merge` CLI** to merge PRs into main (not the MCP/API tool, which lacks permissions)
 
 ### Commit Message Format
 
