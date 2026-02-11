@@ -950,6 +950,14 @@ fn log_all_recipe_fields(
             device_id,
         )?;
     }
+    if let Some(v) = recipe.images.value() {
+        let json = serde_json::to_string(v).unwrap_or_default();
+        change_log::append_change(conn, id, "images", Some(&json), device_id)?;
+    }
+    if let Some(v) = recipe.nutrition.value() {
+        let json = serde_json::to_string(v).unwrap_or_default();
+        change_log::append_change(conn, id, "nutrition", Some(&json), device_id)?;
+    }
     let ing_json = serde_json::to_string(&recipe.ingredients).unwrap_or_default();
     change_log::append_change(conn, id, "ingredients", Some(&ing_json), device_id)?;
     let inst_json = serde_json::to_string(&recipe.instructions).unwrap_or_default();

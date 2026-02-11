@@ -100,18 +100,28 @@ impl Database {
         for (i, migration) in MIGRATIONS.iter().enumerate() {
             let version = (i + 1) as i64;
             if version > current_version {
-                conn.execute_batch(migration)
+                let tx = conn
+                    .unchecked_transaction()
+                    .map_err(|e| StorageError::Storage {
+                        message: format!("Failed to begin migration {version} transaction: {e}"),
+                    })?;
+
+                tx.execute_batch(migration)
                     .map_err(|e| StorageError::Storage {
                         message: format!("Migration {version} failed: {e}"),
                     })?;
 
                 let now = super::change_log::now_utc();
-                conn.execute(
+                tx.execute(
                     "INSERT INTO schema_version (version, applied_at) VALUES (?1, ?2)",
                     rusqlite::params![version, now],
                 )
                 .map_err(|e| StorageError::Storage {
                     message: format!("Failed to record migration {version}: {e}"),
+                })?;
+
+                tx.commit().map_err(|e| StorageError::Storage {
+                    message: format!("Failed to commit migration {version}: {e}"),
                 })?;
             }
         }

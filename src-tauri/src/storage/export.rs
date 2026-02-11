@@ -42,6 +42,11 @@ pub struct SchemaOrgRecipe {
     pub tags: Option<SchemaOrgTags>,
     #[serde(rename = "x-notes", skip_serializing_if = "Option::is_none")]
     pub notes: Option<String>,
+    #[serde(
+        rename = "x-ingredientsParsed",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub ingredients_parsed: Option<Vec<SchemaOrgIngredient>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -81,10 +86,27 @@ pub struct SchemaOrgNutrition {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SchemaOrgTagEntry {
+    pub label: String,
+    pub confidence: f64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SchemaOrgTags {
-    pub cuisine: Vec<String>,
-    pub course: Vec<String>,
-    pub diet: Vec<String>,
+    pub cuisine: Vec<SchemaOrgTagEntry>,
+    pub course: Vec<SchemaOrgTagEntry>,
+    pub diet: Vec<SchemaOrgTagEntry>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SchemaOrgIngredient {
+    pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub quantity: Option<f64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub unit: Option<String>,
+    #[serde(rename = "rawText")]
+    pub raw_text: String,
 }
 
 // --- Bidirectional conversion ---
@@ -134,16 +156,47 @@ pub fn saved_recipe_to_schema_org(recipe: &SavedRecipe) -> SchemaOrgRecipe {
                 .tags
                 .cuisine
                 .iter()
-                .map(|t| t.label.clone())
+                .map(|t| SchemaOrgTagEntry {
+                    label: t.label.clone(),
+                    confidence: t.confidence,
+                })
                 .collect(),
-            course: recipe.tags.course.iter().map(|t| t.label.clone()).collect(),
-            diet: recipe.tags.diet.iter().map(|t| t.label.clone()).collect(),
+            course: recipe
+                .tags
+                .course
+                .iter()
+                .map(|t| SchemaOrgTagEntry {
+                    label: t.label.clone(),
+                    confidence: t.confidence,
+                })
+                .collect(),
+            diet: recipe
+                .tags
+                .diet
+                .iter()
+                .map(|t| SchemaOrgTagEntry {
+                    label: t.label.clone(),
+                    confidence: t.confidence,
+                })
+                .collect(),
         }),
         notes: if recipe.notes.is_empty() {
             None
         } else {
             Some(recipe.notes.clone())
         },
+        ingredients_parsed: Some(
+            recipe
+                .ingredients
+                .iter()
+                .map(|i| SchemaOrgIngredient {
+                    name: i.name.clone(),
+                    quantity: i.quantity,
+                    unit: i.unit.clone(),
+                    raw_text: i.raw_text.clone(),
+                })
+                .collect(),
+        ),
     }
 }
 
@@ -172,11 +225,25 @@ pub fn schema_org_to_saved_recipe_input(
         Some(d) => ExtractedField::found(d.clone()),
         None => ExtractedField::not_found("Not found in import"),
     };
-    let ingredients: Vec<Ingredient> = schema
-        .recipe_ingredient
-        .iter()
-        .map(|raw| Ingredient::from_raw(raw.clone()))
-        .collect();
+    let ingredients: Vec<Ingredient> = if let Some(parsed) = &schema.ingredients_parsed {
+        parsed
+            .iter()
+            .map(|p| {
+                Ingredient::new(
+                    p.name.clone(),
+                    p.quantity,
+                    p.unit.clone(),
+                    p.raw_text.clone(),
+                )
+            })
+            .collect()
+    } else {
+        schema
+            .recipe_ingredient
+            .iter()
+            .map(|raw| Ingredient::from_raw(raw.clone()))
+            .collect()
+    };
     let instructions: Vec<Instruction> = schema
         .recipe_instructions
         .iter()
@@ -205,9 +272,21 @@ pub fn schema_org_to_saved_recipe_input(
 
     let tags = match &schema.tags {
         Some(t) => TagSet {
-            cuisine: t.cuisine.iter().map(|l| Tag::new(l.clone(), 0.9)).collect(),
-            course: t.course.iter().map(|l| Tag::new(l.clone(), 0.9)).collect(),
-            diet: t.diet.iter().map(|l| Tag::new(l.clone(), 0.9)).collect(),
+            cuisine: t
+                .cuisine
+                .iter()
+                .map(|e| Tag::new(e.label.clone(), e.confidence))
+                .collect(),
+            course: t
+                .course
+                .iter()
+                .map(|e| Tag::new(e.label.clone(), e.confidence))
+                .collect(),
+            diet: t
+                .diet
+                .iter()
+                .map(|e| Tag::new(e.label.clone(), e.confidence))
+                .collect(),
         },
         None => TagSet::empty(),
     };
@@ -525,21 +604,39 @@ mod tests {
         use super::parse_iso_duration_minutes;
 
         // Minutes only
-        assert_eq!(parse_iso_duration_minutes(Some("PT30M")), ExtractedField::found(30));
+        assert_eq!(
+            parse_iso_duration_minutes(Some("PT30M")),
+            ExtractedField::found(30)
+        );
 
         // Hours and minutes
-        assert_eq!(parse_iso_duration_minutes(Some("PT1H30M")), ExtractedField::found(90));
+        assert_eq!(
+            parse_iso_duration_minutes(Some("PT1H30M")),
+            ExtractedField::found(90)
+        );
 
         // Hours only
-        assert_eq!(parse_iso_duration_minutes(Some("PT2H")), ExtractedField::found(120));
+        assert_eq!(
+            parse_iso_duration_minutes(Some("PT2H")),
+            ExtractedField::found(120)
+        );
 
         // Zero
-        assert_eq!(parse_iso_duration_minutes(Some("PT0M")), ExtractedField::found(0));
+        assert_eq!(
+            parse_iso_duration_minutes(Some("PT0M")),
+            ExtractedField::found(0)
+        );
 
         // None
-        assert!(matches!(parse_iso_duration_minutes(None), ExtractedField::NotFound { .. }));
+        assert!(matches!(
+            parse_iso_duration_minutes(None),
+            ExtractedField::NotFound { .. }
+        ));
 
         // Invalid
-        assert!(matches!(parse_iso_duration_minutes(Some("bogus")), ExtractedField::NotFound { .. }));
+        assert!(matches!(
+            parse_iso_duration_minutes(Some("bogus")),
+            ExtractedField::NotFound { .. }
+        ));
     }
 }
