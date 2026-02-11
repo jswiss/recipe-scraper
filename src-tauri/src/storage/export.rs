@@ -244,14 +244,38 @@ pub fn schema_org_to_saved_recipe_input(
 fn parse_iso_duration_minutes(s: Option<&str>) -> ExtractedField<u32> {
     match s {
         Some(dur) => {
-            // Parse PT{n}M or PT{h}H{m}M
+            // Parse PT{n}M, PT{h}H, or PT{h}H{m}M
             let dur = dur.trim_start_matches("PT");
-            if let Some(m) = dur.strip_suffix('M') {
+            let mut total: u32 = 0;
+            let mut found = false;
+
+            // Extract hours if present (e.g. "1H30M" or "2H")
+            if let Some(h_pos) = dur.find('H') {
+                if let Ok(hours) = dur[..h_pos].parse::<u32>() {
+                    total += hours * 60;
+                    found = true;
+                }
+                // Parse remaining minutes after 'H' (e.g. "30M" from "1H30M")
+                let rest = &dur[h_pos + 1..];
+                if let Some(m) = rest.strip_suffix('M') {
+                    if let Ok(mins) = m.parse::<u32>() {
+                        total += mins;
+                        found = true;
+                    }
+                }
+            } else if let Some(m) = dur.strip_suffix('M') {
+                // Minutes only (e.g. "30M")
                 if let Ok(mins) = m.parse::<u32>() {
-                    return ExtractedField::found(mins);
+                    total += mins;
+                    found = true;
                 }
             }
-            ExtractedField::not_found("Could not parse duration")
+
+            if found {
+                ExtractedField::found(total)
+            } else {
+                ExtractedField::not_found("Could not parse duration")
+            }
         }
         None => ExtractedField::not_found("Not found in import"),
     }
@@ -494,5 +518,28 @@ mod tests {
         assert!(!result.errors.is_empty());
 
         std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn parse_iso_duration_handles_hours_and_minutes() {
+        use super::parse_iso_duration_minutes;
+
+        // Minutes only
+        assert_eq!(parse_iso_duration_minutes(Some("PT30M")), ExtractedField::found(30));
+
+        // Hours and minutes
+        assert_eq!(parse_iso_duration_minutes(Some("PT1H30M")), ExtractedField::found(90));
+
+        // Hours only
+        assert_eq!(parse_iso_duration_minutes(Some("PT2H")), ExtractedField::found(120));
+
+        // Zero
+        assert_eq!(parse_iso_duration_minutes(Some("PT0M")), ExtractedField::found(0));
+
+        // None
+        assert!(matches!(parse_iso_duration_minutes(None), ExtractedField::NotFound { .. }));
+
+        // Invalid
+        assert!(matches!(parse_iso_duration_minutes(Some("bogus")), ExtractedField::NotFound { .. }));
     }
 }

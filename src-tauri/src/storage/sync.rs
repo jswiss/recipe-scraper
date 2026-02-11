@@ -266,36 +266,55 @@ pub fn merge_changes(db: &Database) -> Result<i64, StorageError> {
             if field == "__deleted" {
                 continue;
             }
+            let now = change_log::now_utc();
             match field.as_str() {
                 "title" => {
                     conn.execute(
                         "UPDATE recipes SET title = ?1, title_status = 'found', updated_at = ?2 WHERE id = ?3",
-                        rusqlite::params![value, change_log::now_utc(), recipe_id],
-                    ).ok();
+                        rusqlite::params![value, now, recipe_id],
+                    ).map_err(|e| StorageError::Storage { message: format!("Merge title failed: {e}") })?;
                 }
                 "description" => {
                     conn.execute(
                         "UPDATE recipes SET description = ?1, description_status = 'found', updated_at = ?2 WHERE id = ?3",
-                        rusqlite::params![value, change_log::now_utc(), recipe_id],
-                    ).ok();
+                        rusqlite::params![value, now, recipe_id],
+                    ).map_err(|e| StorageError::Storage { message: format!("Merge description failed: {e}") })?;
                 }
                 "notes" => {
                     conn.execute(
                         "UPDATE recipes SET notes = ?1, updated_at = ?2 WHERE id = ?3",
-                        rusqlite::params![
-                            value.as_deref().unwrap_or(""),
-                            change_log::now_utc(),
-                            recipe_id
-                        ],
+                        rusqlite::params![value.as_deref().unwrap_or(""), now, recipe_id],
                     )
-                    .ok();
+                    .map_err(|e| StorageError::Storage {
+                        message: format!("Merge notes failed: {e}"),
+                    })?;
                 }
-                "servings" | "prep_time_minutes" | "cook_time_minutes" => {
+                "servings" => {
                     conn.execute(
-                        &format!("UPDATE recipes SET {field} = ?1, updated_at = ?2 WHERE id = ?3"),
-                        rusqlite::params![value, change_log::now_utc(), recipe_id],
+                        "UPDATE recipes SET servings = ?1, updated_at = ?2 WHERE id = ?3",
+                        rusqlite::params![value, now, recipe_id],
                     )
-                    .ok();
+                    .map_err(|e| StorageError::Storage {
+                        message: format!("Merge servings failed: {e}"),
+                    })?;
+                }
+                "prep_time_minutes" => {
+                    conn.execute(
+                        "UPDATE recipes SET prep_time_minutes = ?1, updated_at = ?2 WHERE id = ?3",
+                        rusqlite::params![value, now, recipe_id],
+                    )
+                    .map_err(|e| StorageError::Storage {
+                        message: format!("Merge prep_time failed: {e}"),
+                    })?;
+                }
+                "cook_time_minutes" => {
+                    conn.execute(
+                        "UPDATE recipes SET cook_time_minutes = ?1, updated_at = ?2 WHERE id = ?3",
+                        rusqlite::params![value, now, recipe_id],
+                    )
+                    .map_err(|e| StorageError::Storage {
+                        message: format!("Merge cook_time failed: {e}"),
+                    })?;
                 }
                 _ => {} // Complex fields (ingredients, instructions, tags) handled separately
             }

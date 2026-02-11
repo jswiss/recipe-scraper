@@ -162,7 +162,7 @@ where
 {
     match field {
         ExtractedField::Found { value } => ("found", Some(value.to_string())),
-        ExtractedField::NotFound { justification } => ("not_found", Some(justification.clone())),
+        ExtractedField::NotFound { .. } => ("not_found", None),
     }
 }
 
