@@ -30,6 +30,8 @@ contributions MUST comply with these principles.
 - N/A (extraction only; storage is separate feature) (003-recipe-extraction)
 - Rust 1.77+ (stable toolchain) + serde 1.x, thiserror 2.x, tauri 2.x (all already in Cargo.toml; no new dependencies) (004-recipe-tagging)
 - N/A (tagging is compute-only; persistence is a separate feature) (004-recipe-tagging)
+- Rust 1.77+ (stable toolchain) + tauri 2.1.0, serde 1.0, thiserror 2, rusqlite 0.38 (NEW — `bundled` feature) (005-persistent-state)
+- SQLite (local file, WAL mode) via rusqlite (005-persistent-state)
 
 ### Rust/Tauri Backend
 - **Rust 1.77+**: Backend language (stable toolchain)
@@ -188,10 +190,10 @@ test: add tests for <component>
 ```
 
 ## Recent Changes
+- 005-persistent-state: Added Rust 1.77+ (stable toolchain) + tauri 2.1.0, serde 1.0, thiserror 2, rusqlite 0.38 (NEW — `bundled` feature)
 - 004-recipe-tagging: Added Rust 1.77+ (stable toolchain) + serde 1.x, thiserror 2.x, tauri 2.x (all already in Cargo.toml; no new dependencies)
 - 003-recipe-extraction: Added Rust 1.77+ (stable toolchain)
 
-- 002-rust-tauri-refactor: Completed Rust/Tauri backend refactor
 
 <!-- MANUAL ADDITIONS START -->
 <!-- Add project-specific notes below this line -->
