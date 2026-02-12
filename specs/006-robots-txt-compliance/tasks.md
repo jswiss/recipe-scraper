@@ -24,8 +24,8 @@
 
 **Purpose**: Models, error types, and database migration that ALL user stories depend on
 
-- [ ] T003 [P] Define `RobotsDecision`, `CacheSource`, and `RobotsError` types with serde derives in `src-tauri/src/robots_compliance/models.rs` per data-model.md
-- [ ] T004 [P] Create SQLite migration `src-tauri/src/storage/migrations/002_robots_cache.sql` with `robots_cache` table (domain TEXT PK, raw_content TEXT, fetched_at TEXT, status TEXT with CHECK constraint) and update `Database::run_migrations()` in `src-tauri/src/storage/database.rs` to apply it
+- [x] T003 [P] Define `RobotsDecision`, `CacheSource`, and `RobotsError` types with serde derives in `src-tauri/src/robots_compliance/models.rs` per data-model.md
+- [x] T004 [P] Create SQLite migration `src-tauri/src/storage/migrations/002_robots_cache.sql` with `robots_cache` table (domain TEXT PK, raw_content TEXT, fetched_at TEXT, status TEXT with CHECK constraint) and update `Database::run_migrations()` in `src-tauri/src/storage/database.rs` to apply it
 
 **Checkpoint**: Models compile, migration runs on app startup, module skeleton wires up
 
