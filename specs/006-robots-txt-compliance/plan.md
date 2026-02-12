@@ -66,8 +66,7 @@ src-tauri/src/
 │       └── 002_robots_cache.sql # NEW migration
 ├── url_ingestion/
 │   ├── models.rs                # UPDATED: add RobotsDisallowed variant
-│   ├── commands.rs              # UPDATED: call compliance gate
-│   └── fetcher.rs               # UPDATED: accept compliance gate
+│   └── commands.rs              # UPDATED: call compliance gate
 └── lib.rs                       # UPDATED: register new command
 ```
 

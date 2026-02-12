@@ -41,7 +41,7 @@
 
 - [ ] T005 [US1] Implement `fetch_robots_txt()` in `src-tauri/src/robots_compliance/checker.rs` — fetches `https://{domain}/robots.txt` using the shared `HttpClient`, enforces 10s timeout and 500KB max size, returns raw content or status (not_found, unreachable, oversized)
 - [ ] T006 [US1] Implement `get_or_fetch_robots()` cache layer in `src-tauri/src/robots_compliance/checker.rs` — checks `robots_cache` table for a valid entry (within 24h TTL), fetches and caches on miss/expiry, returns raw content + CacheSource
-- [ ] T007 [US1] Implement `check_compliance()` core logic in `src-tauri/src/robots_compliance/checker.rs` — uses `robotstxt::DefaultMatcher::one_agent_allowed_by_robots()` to evaluate URL against cached/fetched robots.txt, builds and returns `RobotsDecision` with allowed status, reason, and matched_agent
+- [ ] T007 [US1] Implement `check_compliance()` core logic in `src-tauri/src/robots_compliance/checker.rs` — uses `robotstxt::DefaultMatcher::one_agent_allowed_by_robots()` with a `USER_AGENT` constant (default: "RecipeScraper", easily configurable) to evaluate URL against cached/fetched robots.txt, builds and returns `RobotsDecision` with allowed status, reason, and matched_agent (satisfies FR-003 via crate and FR-007 via constant)
 - [ ] T008 [US1] Implement `check_robots_compliance` Tauri command in `src-tauri/src/robots_compliance/commands.rs` per contract — accepts `url: String`, `client: State<HttpClient>`, `db: State<Database>`, delegates to `check_compliance()`
 - [ ] T009 [US1] Register `check_robots_compliance` command in `src-tauri/src/lib.rs` invoke_handler and add necessary imports
 - [ ] T010 [US1] Add `RobotsDisallowed { message, url, reason }` variant to `FetchError` in `src-tauri/src/url_ingestion/models.rs`

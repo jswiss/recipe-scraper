@@ -80,7 +80,6 @@ When a site has no robots.txt file (HTTP 404) or the file cannot be fetched (net
 ### Key Entities
 
 - **RobotsDecision**: The outcome of a compliance check for a single URL — contains the URL checked, whether access is allowed or disallowed, the reason for the decision, crawl delay (if any), and the matched user-agent group.
-- **ParsedRobots**: A parsed representation of a robots.txt file for a domain — contains user-agent groups, their associated rules (allow/disallow paths), and crawl delay values.
 
 ## Success Criteria *(mandatory)*
 
