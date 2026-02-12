@@ -15,8 +15,8 @@
 
 **Purpose**: Add dependency and create module skeleton
 
-- [ ] T001 Add `robotstxt = "0.3.0"` dependency to `src-tauri/Cargo.toml` and run `cargo build` to verify compilation
-- [ ] T002 Create `robots_compliance` module skeleton with `src-tauri/src/robots_compliance/mod.rs` (pub mod declarations for models, checker, crawl_delay, commands) and declare `pub mod robots_compliance;` in `src-tauri/src/lib.rs`
+- [x] T001 Add `robotstxt = "0.3.0"` dependency to `src-tauri/Cargo.toml` and run `cargo build` to verify compilation
+- [x] T002 Create `robots_compliance` module skeleton with `src-tauri/src/robots_compliance/mod.rs` (pub mod declarations for models, checker, crawl_delay, commands) and declare `pub mod robots_compliance;` in `src-tauri/src/lib.rs`
 
 ---
 

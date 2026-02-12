@@ -1,5 +1,6 @@
 pub mod recipe_extraction;
 pub mod recipe_tagging;
+pub mod robots_compliance;
 pub mod storage;
 pub mod url_ingestion;
 

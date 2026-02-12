@@ -48,3 +48,6 @@ rusqlite = { version = "0.38", features = ["bundled", "backup"] }
 
 # UUID generation
 uuid = { version = "1", features = ["v4"] }
+
+# Robots.txt parsing (zero-dependency port of Google's parser)
+robotstxt = "0.3"
