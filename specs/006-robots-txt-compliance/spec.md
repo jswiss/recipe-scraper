@@ -9,7 +9,7 @@
 
 ### User Story 1 - Check If Scraping Is Allowed (Priority: P1)
 
-Before the application fetches a recipe URL, it checks the site's robots.txt to determine whether scraping is permitted for that URL path. The user submits a URL as they normally would; the compliance check happens transparently. If scraping is disallowed, the user receives a clear message explaining that the site does not permit automated access to that page.
+Before the application fetches a recipe URL, it checks the site's robots.txt to determine whether scraping is permitted for that URL path. The compliance check is available as a standalone command (so the frontend can show compliance status proactively) and is also enforced as a gate within the existing `ingest_url` flow. If scraping is disallowed, the user receives a clear message explaining that the site does not permit automated access to that page.
 
 **Why this priority**: This is the core value of the feature — without this check, the application cannot respect site policies, which is both an ethical and legal concern.
 
@@ -65,8 +65,9 @@ When a site has no robots.txt file (HTTP 404) or the file cannot be fetched (net
 
 ### Functional Requirements
 
-- **FR-001**: System MUST fetch and parse the robots.txt file for a given URL's domain before attempting to scrape the URL.
+- **FR-001**: System MUST provide the compliance check as a separate module with its own Tauri command, returning a decision object that callers can inspect independently.
 - **FR-002**: System MUST return a decision object containing: allowed/disallowed status, crawl delay (if any), and the matched user-agent group.
+- **FR-011**: System MUST integrate the compliance check as a gate within the existing `ingest_url` flow, automatically rejecting disallowed URLs before fetching.
 - **FR-003**: System MUST match user-agent directives using case-insensitive prefix matching per RFC 9309.
 - **FR-004**: System MUST treat a missing robots.txt (HTTP 404 or 410) as "all paths allowed" per RFC 9309.
 - **FR-005**: System MUST treat an unreachable robots.txt (network error, HTTP 5xx, timeout) as "all paths disallowed".
@@ -74,7 +75,7 @@ When a site has no robots.txt file (HTTP 404) or the file cannot be fetched (net
 - **FR-007**: System MUST use a configurable user-agent string for robots.txt matching (default: "RecipeScraper").
 - **FR-008**: System MUST enforce a maximum robots.txt file size of 500 KB, treating oversized files as empty.
 - **FR-009**: System MUST enforce a timeout when fetching robots.txt (default: 10 seconds) to avoid blocking on unresponsive servers.
-- **FR-010**: System MUST cache parsed robots.txt per domain to avoid redundant fetches within the same session.
+- **FR-010**: System MUST cache parsed robots.txt per domain persistently (SQLite) with a 24-hour TTL, enabling offline compliance checks for previously-visited domains and avoiding redundant fetches.
 
 ### Key Entities
 
@@ -90,9 +91,16 @@ When a site has no robots.txt file (HTTP 404) or the file cannot be fetched (net
 - **SC-003**: The system correctly identifies allowed/disallowed status for 95%+ of real-world recipe sites when compared against a reference robots.txt parser.
 - **SC-004**: Every decision object contains all required fields (allowed status, crawl delay, reason) with no missing or null values.
 
+## Clarifications
+
+### Session 2026-02-11
+
+- Q: Should cached robots.txt decisions persist across app restarts to support offline compliance checks? → A: Yes — persist to SQLite with a 24-hour TTL, enabling offline checks for previously-visited domains.
+- Q: Should the compliance check be enforced inside `ingest_url` or be a separate module? → A: Separate module with its own Tauri command returning a decision object; `ingest_url` also calls it internally as a gate to block disallowed URLs.
+
 ## Assumptions
 
 - The application uses a single user-agent string for all requests ("RecipeScraper" by default). This can be made configurable but does not need per-request user-agent switching.
-- Caching of parsed robots.txt is in-memory per session; there is no need for persistent cross-session caching at this stage.
+- Caching of parsed robots.txt is persistent (SQLite) with a 24-hour TTL. Expired entries are re-fetched on next check. Offline users can rely on cached decisions for previously-visited domains until the TTL expires.
 - The `Sitemap` directive in robots.txt is ignored — it is not relevant to compliance checking.
 - Pattern matching in `Allow`/`Disallow` paths supports `*` (wildcard) and `$` (end-of-URL anchor) as specified in common robots.txt extensions and RFC 9309.
