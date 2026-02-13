@@ -16,6 +16,8 @@ pub enum ErrorType {
     ContentType,
     /// Response exceeds 10MB limit
     Size,
+    /// Scraping disallowed by robots.txt
+    RobotsDisallowed,
 }
 
 /// A validated and normalized URL ready for fetching.
@@ -121,6 +123,14 @@ pub enum FetchError {
         url: String,
         max_bytes: usize,
     },
+
+    /// Scraping disallowed by robots.txt
+    #[error("{message}")]
+    RobotsDisallowed {
+        message: String,
+        url: String,
+        reason: String,
+    },
 }
 
 impl FetchError {
@@ -132,6 +142,7 @@ impl FetchError {
             FetchError::Http { .. } => ErrorType::Http,
             FetchError::ContentType { .. } => ErrorType::ContentType,
             FetchError::Size { .. } => ErrorType::Size,
+            FetchError::RobotsDisallowed { .. } => ErrorType::RobotsDisallowed,
         }
     }
 
@@ -142,7 +153,8 @@ impl FetchError {
             | FetchError::Network { url, .. }
             | FetchError::Http { url, .. }
             | FetchError::ContentType { url, .. }
-            | FetchError::Size { url, .. } => url,
+            | FetchError::Size { url, .. }
+            | FetchError::RobotsDisallowed { url, .. } => url,
         }
     }
 }

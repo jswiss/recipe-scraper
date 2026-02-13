@@ -1,6 +1,8 @@
 use reqwest::Client;
 use tauri::State;
 
+use crate::robots_compliance::checker::check_compliance;
+use crate::storage::Database;
 use crate::url_ingestion::fetcher::{create_client, fetch};
 use crate::url_ingestion::models::{FetchError, FetchSuccess, NormalizedUrl};
 use crate::url_ingestion::normalizer::normalize;
@@ -11,17 +13,37 @@ pub struct HttpClient(pub Client);
 
 /// Validates, normalizes, and fetches a URL.
 ///
-/// This is the main Tauri command for URL ingestion.
+/// This is the main Tauri command for URL ingestion. It checks robots.txt
+/// compliance before fetching and rejects disallowed URLs.
 #[tauri::command]
 pub async fn ingest_url(
     url: String,
     client: State<'_, HttpClient>,
+    db: State<'_, Database>,
 ) -> Result<FetchSuccess, FetchError> {
     // Validate the URL
     let parsed = validate(&url)?;
 
     // Normalize the URL
     let normalized = normalize(&parsed);
+    let url_string = normalized.to_url_string();
+
+    // Check robots.txt compliance before fetching
+    let decision = check_compliance(&client.0, &db, &url_string)
+        .await
+        .map_err(|e| FetchError::Network {
+            message: format!("Robots.txt check failed: {e}"),
+            url: url_string.clone(),
+            details: None,
+        })?;
+
+    if !decision.allowed {
+        return Err(FetchError::RobotsDisallowed {
+            message: "Scraping disallowed by robots.txt".to_string(),
+            url: url_string,
+            reason: decision.reason,
+        });
+    }
 
     // Fetch the content
     fetch(&client.0, &normalized).await

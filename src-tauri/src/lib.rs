@@ -6,6 +6,7 @@ pub mod url_ingestion;
 
 use recipe_extraction::extract_recipe;
 use recipe_tagging::{extract_and_tag, tag_recipe};
+use robots_compliance::check_robots_compliance;
 use storage::commands::{
     backup_collection, delete_recipe, export_recipes, get_recipe, get_sync_status, import_recipes,
     list_recipes, restore_collection, save_recipe, search_recipes, trigger_sync, update_recipe,
@@ -40,6 +41,7 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            check_robots_compliance,
             ingest_url,
             validate_url,
             extract_recipe,
