@@ -89,8 +89,8 @@
 
 **Purpose**: Cleanup, startup maintenance, and final validation
 
-- [ ] T020 Add startup cache cleanup in `Database::new()` or setup closure in `src-tauri/src/lib.rs` — prune `robots_cache` entries older than 7 days
-- [ ] T021 Run `cargo fmt`, `cargo clippy`, and full `cargo test` suite to validate all phases
+- [x] T020 Add startup cache cleanup in `Database::new()` or setup closure in `src-tauri/src/lib.rs` — prune `robots_cache` entries older than 7 days
+- [x] T021 Run `cargo fmt`, `cargo clippy`, and full `cargo test` suite to validate all phases
 
 ---
 

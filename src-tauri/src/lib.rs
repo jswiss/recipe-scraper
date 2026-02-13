@@ -36,6 +36,15 @@ pub fn run() {
                 .app_data_dir()
                 .expect("Failed to resolve app data directory");
             let db = storage::Database::new(&app_data_dir).expect("Failed to initialize database");
+
+            // Prune stale robots.txt cache entries (older than 7 days)
+            if let Ok(conn) = db.conn.lock() {
+                let _ = conn.execute(
+                    "DELETE FROM robots_cache WHERE fetched_at < datetime('now', '-7 days')",
+                    [],
+                );
+            }
+
             app.manage(db);
 
             Ok(())
