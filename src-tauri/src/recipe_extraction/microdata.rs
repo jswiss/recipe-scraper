@@ -434,4 +434,24 @@ mod tests {
         assert_eq!(result.instructions[0].text, "Step one text");
         assert_eq!(result.instructions[1].text, "Step two text");
     }
+
+    #[test]
+    fn test_microdata_missing_optional_fields_returns_not_found() {
+        let html = r#"
+            <div itemscope itemtype="https://schema.org/Recipe">
+                <h1 itemprop="name">Simple Recipe</h1>
+                <ul>
+                    <li itemprop="recipeIngredient">1 cup water</li>
+                    <li itemprop="recipeIngredient">2 cups rice</li>
+                </ul>
+            </div>
+        "#;
+        let result = extract_from_microdata(html).unwrap();
+        assert!(matches!(
+            result.prep_time_minutes,
+            ExtractedField::NotFound { .. }
+        ));
+        assert!(matches!(result.nutrition, ExtractedField::NotFound { .. }));
+        assert!(matches!(result.images, ExtractedField::NotFound { .. }));
+    }
 }

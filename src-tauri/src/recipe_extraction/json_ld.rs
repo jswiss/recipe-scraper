@@ -569,4 +569,113 @@ mod tests {
         assert_eq!(result.instructions[0].text, "Step one");
         assert_eq!(result.instructions[1].text, "Step two");
     }
+
+    #[test]
+    fn test_jsonld_missing_prep_time_returns_not_found() {
+        let html = r#"
+            <script type="application/ld+json">
+            {
+                "@type": "Recipe",
+                "name": "Test",
+                "recipeIngredient": ["flour"],
+                "cookTime": "PT10M"
+            }
+            </script>
+        "#;
+        let result = extract_from_jsonld(html).unwrap();
+        assert!(matches!(
+            result.prep_time_minutes,
+            ExtractedField::NotFound { .. }
+        ));
+        if let ExtractedField::NotFound { justification } = &result.prep_time_minutes {
+            assert!(!justification.is_empty());
+        }
+    }
+
+    #[test]
+    fn test_jsonld_missing_nutrition_returns_not_found() {
+        let html = r#"
+            <script type="application/ld+json">
+            {
+                "@type": "Recipe",
+                "name": "Test",
+                "recipeIngredient": ["flour"]
+            }
+            </script>
+        "#;
+        let result = extract_from_jsonld(html).unwrap();
+        assert!(matches!(result.nutrition, ExtractedField::NotFound { .. }));
+    }
+
+    #[test]
+    fn test_jsonld_missing_images_returns_not_found() {
+        let html = r#"
+            <script type="application/ld+json">
+            {
+                "@type": "Recipe",
+                "name": "Test",
+                "recipeIngredient": ["flour"]
+            }
+            </script>
+        "#;
+        let result = extract_from_jsonld(html).unwrap();
+        assert!(matches!(result.images, ExtractedField::NotFound { .. }));
+    }
+
+    #[test]
+    fn test_jsonld_multiple_images_all_captured() {
+        let html = r#"
+            <script type="application/ld+json">
+            {
+                "@type": "Recipe",
+                "name": "Test",
+                "recipeIngredient": ["flour"],
+                "image": ["url1.jpg", "url2.jpg", "url3.jpg"]
+            }
+            </script>
+        "#;
+        let result = extract_from_jsonld(html).unwrap();
+        assert!(result.images.is_found());
+        if let ExtractedField::Found { value } = &result.images {
+            assert_eq!(value.len(), 3);
+            assert!(value.contains(&"url1.jpg".to_string()));
+            assert!(value.contains(&"url2.jpg".to_string()));
+            assert!(value.contains(&"url3.jpg".to_string()));
+        }
+    }
+
+    #[test]
+    fn test_jsonld_nutrition_fields_extracted() {
+        let html = r#"
+            <script type="application/ld+json">
+            {
+                "@type": "Recipe",
+                "name": "Test",
+                "recipeIngredient": ["flour"],
+                "nutrition": {
+                    "@type": "NutritionInformation",
+                    "calories": "200 calories",
+                    "fatContent": "10 g",
+                    "carbohydrateContent": "25 g",
+                    "proteinContent": "5 g"
+                }
+            }
+            </script>
+        "#;
+        let result = extract_from_jsonld(html).unwrap();
+        assert!(result.nutrition.is_found());
+        if let ExtractedField::Found { value } = &result.nutrition {
+            assert_eq!(value.calories, Some(200));
+            assert_eq!(value.fat_grams, Some(10.0));
+            assert_eq!(value.carbs_grams, Some(25.0));
+            assert_eq!(value.protein_grams, Some(5.0));
+        }
+    }
+
+    #[test]
+    fn test_jsonld_malformed_falls_back_gracefully() {
+        let html = r#"<script type="application/ld+json">{ "broken": }</script>"#;
+        let result = extract_from_jsonld(html);
+        assert!(result.is_err());
+    }
 }

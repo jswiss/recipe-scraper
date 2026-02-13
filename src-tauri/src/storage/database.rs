@@ -49,7 +49,6 @@ impl Database {
     }
 
     /// Opens an in-memory database for testing.
-    #[cfg(test)]
     pub fn new_in_memory() -> Result<Self, StorageError> {
         let conn = Connection::open_in_memory().map_err(|e| StorageError::Storage {
             message: format!("Failed to open in-memory database: {e}"),

@@ -65,3 +65,30 @@ pub async fn validate_url(url: String) -> Result<NormalizedUrl, FetchError> {
 pub fn create_http_client() -> Result<HttpClient, FetchError> {
     create_client().map(HttpClient)
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::url_ingestion::models::FetchError;
+    use crate::url_ingestion::normalizer::normalize;
+    use crate::url_ingestion::validator::validate;
+
+    #[test]
+    fn test_validate_url_valid_returns_normalized() {
+        let parsed = validate("https://EXAMPLE.COM/path/").expect("URL should be valid");
+        let normalized = normalize(&parsed);
+        assert_eq!(
+            normalized.host, "example.com",
+            "Host should be lowercased after normalization"
+        );
+    }
+
+    #[test]
+    fn test_validate_url_invalid_returns_error() {
+        let result = validate("not-a-url");
+        assert!(result.is_err(), "Invalid URL should return an error");
+        assert!(
+            matches!(result.unwrap_err(), FetchError::Validation { .. }),
+            "Error should be a Validation variant"
+        );
+    }
+}

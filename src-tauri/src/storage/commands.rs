@@ -123,3 +123,105 @@ pub async fn trigger_sync(
 pub async fn get_sync_status(db: State<'_, Database>) -> Result<SyncStatus, StorageError> {
     sync::get_sync_status(&db)
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::recipe_extraction::{
+        ExtractedField, ExtractedRecipe, ExtractionSource, Ingredient, Instruction,
+    };
+    use crate::recipe_tagging::{Tag, TagSet};
+    use crate::storage::database::Database;
+    use crate::storage::models::{SaveRecipeInput, StorageError};
+    use crate::storage::repository;
+
+    fn test_db() -> Database {
+        Database::new_in_memory().expect("Failed to create test DB")
+    }
+
+    fn sample_recipe() -> ExtractedRecipe {
+        ExtractedRecipe {
+            title: ExtractedField::found("Test Recipe".to_string()),
+            description: ExtractedField::found("A test recipe".to_string()),
+            ingredients: vec![Ingredient::new(
+                "flour",
+                Some(2.0),
+                Some("cups".into()),
+                "2 cups flour",
+            )],
+            instructions: vec![Instruction::new(1, "Mix")],
+            prep_time_minutes: ExtractedField::found(10),
+            cook_time_minutes: ExtractedField::found(20),
+            servings: ExtractedField::found("4 servings".to_string()),
+            images: ExtractedField::not_found("Not provided"),
+            nutrition: ExtractedField::not_found("Not provided"),
+            source: ExtractionSource::JsonLd,
+        }
+    }
+
+    fn sample_tags() -> TagSet {
+        TagSet {
+            cuisine: vec![Tag::new("Italian", 0.9)],
+            course: vec![Tag::new("dinner", 0.8)],
+            diet: vec![],
+        }
+    }
+
+    #[test]
+    fn test_save_recipe_command_returns_save_result() {
+        let db = test_db();
+        let recipe = sample_recipe();
+        let tags = sample_tags();
+
+        let result = repository::save_recipe(
+            &db,
+            SaveRecipeInput {
+                recipe: &recipe,
+                tags: &tags,
+                source_url: "https://example.com/test",
+            },
+        )
+        .expect("save_recipe should succeed");
+
+        assert!(!result.id.is_empty(), "ID should not be empty");
+        assert!(result.created, "Should be a new recipe");
+    }
+
+    #[test]
+    fn test_get_recipe_not_found_returns_error() {
+        let db = test_db();
+        let result = repository::get_recipe(&db, "nonexistent-id");
+
+        assert!(result.is_err(), "Should return an error for missing ID");
+        assert!(
+            matches!(result.unwrap_err(), StorageError::NotFound { .. }),
+            "Error should be NotFound"
+        );
+    }
+
+    #[test]
+    fn test_delete_recipe_returns_result() {
+        let db = test_db();
+        let recipe = sample_recipe();
+        let tags = sample_tags();
+
+        let save_result = repository::save_recipe(
+            &db,
+            SaveRecipeInput {
+                recipe: &recipe,
+                tags: &tags,
+                source_url: "https://example.com/delete-test",
+            },
+        )
+        .expect("save_recipe should succeed");
+
+        let delete_result =
+            repository::delete_recipe(&db, &save_result.id).expect("delete_recipe should succeed");
+        assert!(delete_result.deleted, "Recipe should be marked as deleted");
+
+        let get_result = repository::get_recipe(&db, &save_result.id);
+        assert!(
+            matches!(get_result, Err(StorageError::NotFound { .. })),
+            "Deleted recipe should return NotFound"
+        );
+    }
+}
