@@ -48,10 +48,7 @@ fn robots_url(url: &str) -> Result<String, RobotsError> {
         url: url.to_string(),
     })?;
 
-    let port = parsed
-        .port()
-        .map(|p| format!(":{p}"))
-        .unwrap_or_default();
+    let port = parsed.port().map(|p| format!(":{p}")).unwrap_or_default();
 
     Ok(format!("{scheme}://{host}{port}/robots.txt"))
 }
@@ -166,8 +163,7 @@ fn is_within_ttl(fetched_at: &str) -> bool {
     // We need to check if (now - fetched_at) < 24 hours.
 
     // Parse year, month, day, hour from the timestamp strings
-    if let (Some(fetched_ts), Some(now_ts)) = (parse_timestamp(fetched_at), parse_timestamp(&now))
-    {
+    if let (Some(fetched_ts), Some(now_ts)) = (parse_timestamp(fetched_at), parse_timestamp(&now)) {
         let diff_secs = now_ts.saturating_sub(fetched_ts);
         diff_secs < (CACHE_TTL_HOURS as u64 * 3600)
     } else {
@@ -298,11 +294,7 @@ pub async fn check_compliance(
             "robots.txt not found \u{2014} allowed per RFC 9309".to_string(),
             "*".to_string(),
         ),
-        "unreachable" => (
-            false,
-            "robots.txt unreachable".to_string(),
-            "*".to_string(),
-        ),
+        "unreachable" => (false, "robots.txt unreachable".to_string(), "*".to_string()),
         "oversized" => (
             true,
             "robots.txt oversized \u{2014} treated as empty per policy".to_string(),
@@ -318,8 +310,7 @@ pub async fn check_compliance(
             } else {
                 // Use robotstxt crate to check
                 let mut matcher = robotstxt::DefaultMatcher::default();
-                let is_allowed =
-                    matcher.one_agent_allowed_by_robots(&raw_content, USER_AGENT, url);
+                let is_allowed = matcher.one_agent_allowed_by_robots(&raw_content, USER_AGENT, url);
 
                 // Determine which agent group matched
                 // Try specific agent first, then wildcard
@@ -355,14 +346,10 @@ pub async fn check_compliance(
     // Stale cache suffix
     let reason = if source == CacheSource::Cached
         && !is_within_ttl(
-            &get_cached(
-                db,
-                &extract_domain(url).unwrap_or_default(),
-            )
-            .map(|c| c.fetched_at)
-            .unwrap_or_default(),
-        )
-    {
+            &get_cached(db, &extract_domain(url).unwrap_or_default())
+                .map(|c| c.fetched_at)
+                .unwrap_or_default(),
+        ) {
         format!("{reason} (stale cache)")
     } else {
         reason

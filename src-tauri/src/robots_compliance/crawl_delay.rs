@@ -19,14 +19,20 @@ pub fn parse_crawl_delay(raw_content: &str, user_agent: &str) -> Option<f64> {
             continue;
         }
 
-        if let Some(rest) = trimmed.strip_prefix("User-agent:").or_else(|| trimmed.strip_prefix("user-agent:")) {
+        if let Some(rest) = trimmed
+            .strip_prefix("User-agent:")
+            .or_else(|| trimmed.strip_prefix("user-agent:"))
+        {
             let agent = rest.trim().to_lowercase();
             in_specific_group = agent == ua_lower;
             in_wildcard_group = agent == "*";
             continue;
         }
 
-        if let Some(rest) = trimmed.strip_prefix("Crawl-delay:").or_else(|| trimmed.strip_prefix("crawl-delay:")) {
+        if let Some(rest) = trimmed
+            .strip_prefix("Crawl-delay:")
+            .or_else(|| trimmed.strip_prefix("crawl-delay:"))
+        {
             if let Ok(val) = rest.trim().parse::<f64>() {
                 if val >= 0.0 {
                     if in_specific_group {
@@ -61,7 +67,8 @@ mod tests {
 
     #[test]
     fn test_specific_overrides_wildcard() {
-        let content = "User-agent: *\nCrawl-delay: 5\n\nUser-agent: RecipeScraper\nCrawl-delay: 2\n";
+        let content =
+            "User-agent: *\nCrawl-delay: 5\n\nUser-agent: RecipeScraper\nCrawl-delay: 2\n";
         assert_eq!(parse_crawl_delay(content, "RecipeScraper"), Some(2.0));
     }
 
