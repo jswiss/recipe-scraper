@@ -95,4 +95,10 @@ mod tests {
         let content = "User-agent: *\nCrawl-delay: abc\n";
         assert_eq!(parse_crawl_delay(content, "RecipeScraper"), None);
     }
+
+    #[test]
+    fn test_malformed_robots_parses_valid_lines() {
+        let content = "User-agent: *\nCrawl-delay: abc\nCrawl-delay: 3\n";
+        assert_eq!(parse_crawl_delay(content, "RecipeScraper"), Some(3.0));
+    }
 }

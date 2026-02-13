@@ -121,3 +121,103 @@ fn days_to_date(days: i64) -> (i64, u32, u32) {
     let y = if m <= 2 { y + 1 } else { y };
     (y, m, d)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::storage::database::Database;
+
+    /// T018: append_change creates an entry in the change_log table.
+    #[test]
+    fn test_append_change_creates_entry() {
+        let db = Database::new_in_memory().unwrap();
+        let conn = db.conn.lock().unwrap();
+
+        append_change(&conn, "recipe-123", "created", None, "device-1").unwrap();
+
+        let (count, recipe_id, field_name, device_id, modified_at): (
+            i64,
+            String,
+            String,
+            String,
+            String,
+        ) = conn
+            .query_row(
+                "SELECT COUNT(*), recipe_id, field_name, device_id, modified_at
+                 FROM change_log WHERE recipe_id = 'recipe-123'",
+                [],
+                |row| {
+                    Ok((
+                        row.get(0)?,
+                        row.get(1)?,
+                        row.get(2)?,
+                        row.get(3)?,
+                        row.get(4)?,
+                    ))
+                },
+            )
+            .unwrap();
+
+        assert_eq!(count, 1);
+        assert_eq!(recipe_id, "recipe-123");
+        assert_eq!(field_name, "created");
+        assert_eq!(device_id, "device-1");
+        assert!(!modified_at.is_empty(), "modified_at should not be empty");
+    }
+
+    /// T019: query_pending returns all unsynced entries.
+    #[test]
+    fn test_query_pending_returns_unsynced_entries() {
+        let db = Database::new_in_memory().unwrap();
+        let conn = db.conn.lock().unwrap();
+
+        append_change(&conn, "recipe-a", "title", Some("Pasta"), "dev-1").unwrap();
+        append_change(&conn, "recipe-b", "title", Some("Soup"), "dev-1").unwrap();
+        append_change(&conn, "recipe-c", "title", Some("Salad"), "dev-1").unwrap();
+
+        let pending = query_pending(&conn).unwrap();
+        assert_eq!(pending.len(), 3);
+
+        let ids: Vec<&str> = pending.iter().map(|e| e.recipe_id.as_str()).collect();
+        assert!(ids.contains(&"recipe-a"));
+        assert!(ids.contains(&"recipe-b"));
+        assert!(ids.contains(&"recipe-c"));
+    }
+
+    /// T020: mark_synced clears entries up to the given ID.
+    #[test]
+    fn test_mark_synced_clears_entries() {
+        let db = Database::new_in_memory().unwrap();
+        let conn = db.conn.lock().unwrap();
+
+        append_change(&conn, "recipe-x", "title", Some("A"), "dev-1").unwrap();
+        append_change(&conn, "recipe-y", "title", Some("B"), "dev-1").unwrap();
+        append_change(&conn, "recipe-z", "title", Some("C"), "dev-1").unwrap();
+
+        let pending = query_pending(&conn).unwrap();
+        assert_eq!(pending.len(), 3);
+
+        let max_id = pending.iter().map(|e| e.id).max().unwrap();
+        mark_synced(&conn, max_id).unwrap();
+
+        let after = query_pending(&conn).unwrap();
+        assert!(after.is_empty(), "All entries should be marked as synced");
+    }
+
+    /// T021: now_utc returns a valid ISO 8601 timestamp.
+    #[test]
+    fn test_now_utc_returns_valid_iso8601() {
+        let ts = now_utc();
+
+        // Should contain 'T' separator
+        assert!(ts.contains('T'), "Timestamp should contain 'T': {ts}");
+
+        // Should end with 'Z' for UTC
+        assert!(ts.ends_with('Z'), "Timestamp should end with 'Z': {ts}");
+
+        // Year should be >= 2026
+        let year_str = &ts[..4];
+        let year: i64 = year_str.parse().expect("Year should be numeric");
+        assert!(year >= 2026, "Year should be >= 2026, got: {year}");
+    }
+}

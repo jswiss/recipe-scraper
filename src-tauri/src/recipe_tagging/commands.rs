@@ -186,6 +186,33 @@ mod tests {
     }
 
     #[test]
+    fn test_tag_recipe_command_returns_tagset() {
+        let recipe = make_recipe(
+            "Pad Thai",
+            vec!["fish sauce", "rice noodles", "tofu", "lime", "peanuts"],
+        );
+        let tags = tag_recipe_from_extracted(&recipe, false);
+        assert!(
+            !tags.cuisine.is_empty(),
+            "Pad Thai should produce at least one cuisine tag"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_extract_and_tag_no_recipe_returns_error() {
+        let html = "<html><body>No recipe here</body></html>".to_string();
+        let result = extract_and_tag(html).await;
+        assert!(
+            result.is_err(),
+            "HTML with no recipe should return an error"
+        );
+        assert!(
+            matches!(result.unwrap_err(), TaggingError::ExtractionFailed { .. }),
+            "Error should be ExtractionFailed variant"
+        );
+    }
+
+    #[test]
     fn test_refine_mode_does_not_panic() {
         let recipe = make_recipe(
             "Thai Green Curry",

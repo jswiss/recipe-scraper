@@ -415,4 +415,33 @@ mod tests {
         // A timestamp from 2020 should be expired
         assert!(!is_within_ttl("2020-01-01T00:00:00.000Z"));
     }
+
+    #[test]
+    fn test_empty_robots_txt_allows_all() {
+        let mut matcher = robotstxt::DefaultMatcher::default();
+        let allowed =
+            matcher.one_agent_allowed_by_robots("", USER_AGENT, "http://example.com/recipes");
+        assert!(allowed);
+    }
+
+    #[test]
+    fn test_disallowed_path_returns_blocked() {
+        let content = "User-agent: RecipeScraper\nDisallow: /recipes\n";
+        let mut matcher = robotstxt::DefaultMatcher::default();
+        let allowed = matcher.one_agent_allowed_by_robots(
+            content,
+            USER_AGENT,
+            "http://example.com/recipes/page",
+        );
+        assert!(!allowed);
+    }
+
+    #[test]
+    fn test_wildcard_disallow_blocks_all() {
+        let content = "User-agent: *\nDisallow: /\n";
+        let mut matcher = robotstxt::DefaultMatcher::default();
+        let allowed =
+            matcher.one_agent_allowed_by_robots(content, USER_AGENT, "http://example.com/anything");
+        assert!(!allowed);
+    }
 }
