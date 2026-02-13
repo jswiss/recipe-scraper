@@ -60,9 +60,9 @@
 
 ### Implementation for User Story 2
 
-- [ ] T013 [US2] Implement `parse_crawl_delay()` in `src-tauri/src/robots_compliance/crawl_delay.rs` — parses raw robots.txt content, finds the `Crawl-delay` value for the matched user-agent group (case-insensitive), returns `Option<f64>` in seconds
-- [ ] T014 [US2] Integrate `parse_crawl_delay()` into `check_compliance()` in `src-tauri/src/robots_compliance/checker.rs` — call after allowed/disallowed check, populate `crawl_delay_secs` field in `RobotsDecision`
-- [ ] T015 [US2] Run `cargo test` and `cargo clippy` to verify US2 passes
+- [x] T013 [US2] Implement `parse_crawl_delay()` in `src-tauri/src/robots_compliance/crawl_delay.rs` — parses raw robots.txt content, finds the `Crawl-delay` value for the matched user-agent group (case-insensitive), returns `Option<f64>` in seconds
+- [x] T014 [US2] Integrate `parse_crawl_delay()` into `check_compliance()` in `src-tauri/src/robots_compliance/checker.rs` — call after allowed/disallowed check, populate `crawl_delay_secs` field in `RobotsDecision`
+- [x] T015 [US2] Run `cargo test` and `cargo clippy` to verify US2 passes
 
 **Checkpoint**: Decision objects now include crawl delay when present. No crawl delay returns `None`.
 

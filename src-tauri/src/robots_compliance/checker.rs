@@ -1,6 +1,7 @@
 use reqwest::Client;
 use std::time::Duration;
 
+use crate::robots_compliance::crawl_delay::parse_crawl_delay;
 use crate::robots_compliance::models::{CacheSource, RobotsDecision, RobotsError};
 use crate::storage::change_log::now_utc;
 use crate::storage::Database;
@@ -283,6 +284,13 @@ pub async fn check_compliance(
 ) -> Result<RobotsDecision, RobotsError> {
     let (raw_content, status, source) = get_or_fetch_robots(client, db, url).await?;
 
+    // Extract crawl delay from raw content (if available)
+    let crawl_delay_secs = if status == "ok" && !raw_content.is_empty() {
+        parse_crawl_delay(&raw_content, USER_AGENT)
+    } else {
+        None
+    };
+
     // Map status to decision
     let (allowed, reason, matched_agent) = match status.as_str() {
         "not_found" => (
@@ -364,7 +372,7 @@ pub async fn check_compliance(
         url: url.to_string(),
         allowed,
         reason,
-        crawl_delay_secs: None, // Populated in T014 (US2)
+        crawl_delay_secs,
         matched_agent,
         source,
     })
