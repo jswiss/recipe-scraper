@@ -84,13 +84,22 @@
 - [ ] T027 [P] [US3] Add test `test_jsonld_nutrition_fields_extracted` in `src-tauri/src/recipe_extraction/json_ld.rs`: create JSON-LD HTML with full `nutrition` object (calories, fat, carbs, protein) → call `extract_from_jsonld()` → assert `nutrition` is `ExtractedField::Found` with correct values parsed.
 - [ ] T028 [P] [US3] Add test `test_jsonld_malformed_falls_back_gracefully` in `src-tauri/src/recipe_extraction/json_ld.rs`: create HTML with `<script type="application/ld+json">{ "broken": }</script>` → call `extract_from_jsonld()` → assert returns error (not panic).
 
+### Microdata Edge Cases (Spec 003)
+
+- [ ] T029 [P] [US3] Add test `test_microdata_missing_optional_fields_returns_not_found` in `src-tauri/src/recipe_extraction/microdata.rs`: create Microdata HTML with Recipe itemscope containing only title and ingredients (no prepTime, no nutrition, no image) → call `extract_from_microdata()` → assert `prep_time_minutes`, `nutrition`, and `images` are `ExtractedField::NotFound` with justification strings.
+
+### URL Ingestion Edge Cases (Specs 001/002)
+
+- [ ] T030 [P] [US3] Add test `test_oversized_response_rejected` in `src-tauri/src/url_ingestion/fetcher.rs`: test the size-checking logic by verifying that a response body exceeding 10MB (10_485_760 bytes) produces a `FetchError::Size` error. Use inline bytes or the existing size-check function directly.
+- [ ] T031 [P] [US3] Add test `test_non_html_content_type_rejected` in `src-tauri/src/url_ingestion/fetcher.rs`: test the content-type validation logic by verifying that a response with `Content-Type: application/json` (or similar non-HTML type) produces a `FetchError::ContentType` error.
+
 ### Robots Compliance Edge Cases (Spec 006)
 
-- [ ] T029 [P] [US3] Add test `test_empty_robots_txt_allows_all` in `src-tauri/src/robots_compliance/checker.rs`: test the compliance decision logic with an empty string as `raw_content` and status "found" → assert `allowed` is `true` (empty robots.txt = no restrictions).
-- [ ] T030 [P] [US3] Add test `test_disallowed_path_returns_blocked` in `src-tauri/src/robots_compliance/checker.rs`: test with `raw_content` containing `User-agent: RecipeScraper\nDisallow: /recipes` and a URL path `/recipes/page` → assert `allowed` is `false` and `reason` contains "disallowed".
-- [ ] T031 [P] [US3] Add test `test_wildcard_disallow_blocks_all` in `src-tauri/src/robots_compliance/checker.rs`: test with `raw_content` containing `User-agent: *\nDisallow: /` → assert `allowed` is `false`.
-- [ ] T032 [US3] Add test `test_malformed_robots_parses_valid_lines` in `src-tauri/src/robots_compliance/crawl_delay.rs`: create robots.txt with mix of valid and invalid lines (e.g., `Crawl-delay: abc\nCrawl-delay: 3`) → call `parse_crawl_delay()` → assert returns `Some(3.0)` (ignores invalid, uses valid).
-- [ ] T033 [US3] Run `cargo test recipe_extraction` and `cargo test robots_compliance` to verify new edge case tests pass, then full `cargo test` for regression check.
+- [ ] T032 [P] [US3] Add test `test_empty_robots_txt_allows_all` in `src-tauri/src/robots_compliance/checker.rs`: test the compliance decision logic with an empty string as `raw_content` and status "found" → assert `allowed` is `true` (empty robots.txt = no restrictions).
+- [ ] T033 [P] [US3] Add test `test_disallowed_path_returns_blocked` in `src-tauri/src/robots_compliance/checker.rs`: test with `raw_content` containing `User-agent: RecipeScraper\nDisallow: /recipes` and a URL path `/recipes/page` → assert `allowed` is `false` and `reason` contains "disallowed".
+- [ ] T034 [P] [US3] Add test `test_wildcard_disallow_blocks_all` in `src-tauri/src/robots_compliance/checker.rs`: test with `raw_content` containing `User-agent: *\nDisallow: /` → assert `allowed` is `false`.
+- [ ] T035 [US3] Add test `test_malformed_robots_parses_valid_lines` in `src-tauri/src/robots_compliance/crawl_delay.rs`: create robots.txt with mix of valid and invalid lines (e.g., `Crawl-delay: abc\nCrawl-delay: 3`) → call `parse_crawl_delay()` → assert returns `Some(3.0)` (ignores invalid, uses valid).
+- [ ] T036 [US3] Run `cargo test recipe_extraction` and `cargo test robots_compliance` and `cargo test url_ingestion` to verify new edge case tests pass, then full `cargo test` for regression check.
 
 **Checkpoint**: All spec acceptance scenarios from coverage matrix now have corresponding tests. `cargo test` passes.
 
@@ -104,20 +113,25 @@
 
 ### Storage Commands
 
-- [ ] T034 [P] [US4] Add `#[cfg(test)] mod tests` to `src-tauri/src/storage/commands.rs` with test `test_save_recipe_command_returns_save_result`: create in-memory DB → construct a minimal `ExtractedRecipe` and `TagSet` → call the save logic (the function that `save_recipe` command delegates to) → assert returns `SaveResult` with non-empty `id` and `created: true`.
-- [ ] T035 [P] [US4] Add test `test_get_recipe_not_found_returns_error` in `src-tauri/src/storage/commands.rs`: create in-memory DB → call get logic with non-existent ID → assert returns `StorageError::NotFound`.
-- [ ] T036 [P] [US4] Add test `test_delete_recipe_returns_result` in `src-tauri/src/storage/commands.rs`: create DB → save a recipe → call delete logic → assert returns `DeleteResult { deleted: true }` → call get → assert `NotFound`.
+- [ ] T037 [P] [US4] Add `#[cfg(test)] mod tests` to `src-tauri/src/storage/commands.rs` with test `test_save_recipe_command_returns_save_result`: create in-memory DB → construct a minimal `ExtractedRecipe` and `TagSet` → call the save logic (the function that `save_recipe` command delegates to) → assert returns `SaveResult` with non-empty `id` and `created: true`.
+- [ ] T038 [P] [US4] Add test `test_get_recipe_not_found_returns_error` in `src-tauri/src/storage/commands.rs`: create in-memory DB → call get logic with non-existent ID → assert returns `StorageError::NotFound`.
+- [ ] T039 [P] [US4] Add test `test_delete_recipe_returns_result` in `src-tauri/src/storage/commands.rs`: create DB → save a recipe → call delete logic → assert returns `DeleteResult { deleted: true }` → call get → assert `NotFound`.
 
 ### URL Ingestion Commands
 
-- [ ] T037 [P] [US4] Add `#[cfg(test)] mod tests` to `src-tauri/src/url_ingestion/commands.rs` (if not already present) with test `test_validate_url_valid_returns_normalized`: call `validate_url` internal logic with `"https://EXAMPLE.COM/path/"` → assert returns `Ok(NormalizedUrl)` with lowercase host and trimmed trailing slash.
-- [ ] T038 [P] [US4] Add test `test_validate_url_invalid_returns_error` in `src-tauri/src/url_ingestion/commands.rs`: call validate logic with `"not-a-url"` → assert returns `Err(FetchError::Validation { .. })`.
+- [ ] T040 [P] [US4] Add `#[cfg(test)] mod tests` to `src-tauri/src/url_ingestion/commands.rs` (if not already present) with test `test_validate_url_valid_returns_normalized`: call `validate_url` internal logic with `"https://EXAMPLE.COM/path/"` → assert returns `Ok(NormalizedUrl)` with lowercase host and trimmed trailing slash.
+- [ ] T041 [P] [US4] Add test `test_validate_url_invalid_returns_error` in `src-tauri/src/url_ingestion/commands.rs`: call validate logic with `"not-a-url"` → assert returns `Err(FetchError::Validation { .. })`.
 
 ### Robots Compliance Commands
 
-- [ ] T039 [P] [US4] Add `#[cfg(test)] mod tests` to `src-tauri/src/robots_compliance/commands.rs` with test `test_check_robots_invalid_url_returns_error`: call the compliance check logic with `"not-a-url"` → assert returns `Err(RobotsError::InvalidUrl { .. })`.
+- [ ] T042 [P] [US4] Add `#[cfg(test)] mod tests` to `src-tauri/src/robots_compliance/commands.rs` with test `test_check_robots_invalid_url_returns_error`: call the compliance check logic with `"not-a-url"` → assert returns `Err(RobotsError::InvalidUrl { .. })`.
 
-- [ ] T040 [US4] Run `cargo test commands` across all modules and full `cargo test` for regression check.
+### Recipe Tagging Commands
+
+- [ ] T043 [P] [US4] Add `#[cfg(test)] mod tests` to `src-tauri/src/recipe_tagging/commands.rs` (if not already present) with test `test_tag_recipe_command_returns_tagset`: construct a minimal `ExtractedRecipe` with title "Pad Thai" and ingredients including "fish sauce", "rice noodles" → call `tag_recipe_from_extracted()` → assert returns `TagSet` with non-empty `cuisine` vec containing a Thai-related tag.
+- [ ] T044 [P] [US4] Add test `test_extract_and_tag_no_recipe_returns_error` in `src-tauri/src/recipe_tagging/commands.rs`: call `extract_and_tag` logic with HTML containing no recipe markup → assert returns `Err(TaggingError::ExtractionFailed { .. })`.
+
+- [ ] T045 [US4] Run `cargo test commands` across all modules and full `cargo test` for regression check.
 
 **Checkpoint**: Command layer tests verify argument forwarding and error propagation. `cargo test` passes.
 
@@ -127,10 +141,10 @@
 
 **Purpose**: Final validation, formatting, and regression checks
 
-- [ ] T041 Run `cargo clippy` in `src-tauri/` and fix any warnings in new test code
-- [ ] T042 Run `cargo fmt` in `src-tauri/` to ensure consistent formatting
-- [ ] T043 Run full `cargo test` in `src-tauri/` and verify total test count increased by ~35+ new tests with 0 failures, completing in under 60 seconds
-- [ ] T044 Update coverage matrix at `specs/007-test-coverage/contracts/coverage-matrix.md` — change all "New" entries to "Existing" with actual test function names and locations
+- [ ] T046 Run `cargo clippy` in `src-tauri/` and fix any warnings in new test code
+- [ ] T047 Run `cargo fmt` in `src-tauri/` to ensure consistent formatting
+- [ ] T048 Run full `cargo test` in `src-tauri/` and verify total test count increased by ~40+ new tests with 0 failures, completing in under 60 seconds
+- [ ] T049 Update coverage matrix at `specs/007-test-coverage/contracts/coverage-matrix.md` — change all "New" entries to "Existing" with actual test function names and locations
 
 ---
 
@@ -143,7 +157,7 @@
 - **US2 (Phase 3)**: No dependency on Phase 1 fixtures — uses in-memory DBs and inline data
 - **US3 (Phase 4)**: No dependency on fixtures — uses inline HTML snippets
 - **US4 (Phase 5)**: No dependency on fixtures — uses inline data
-- **Polish (Phase 6)**: Depends on all user stories being complete
+- **Polish (Phase 6)**: Depends on all user stories (Phases 2-5) being complete
 
 ### User Story Dependencies
 
@@ -163,8 +177,8 @@
 - T002-T006 (fixture creation) can all run in parallel
 - US2, US3, US4 can all start in parallel with US1 (only US1 needs fixtures)
 - Within US2: backup tests (T014-T017) and change log tests (T018-T021) can run in parallel
-- Within US3: all extraction tests (T023-T028) and all robots tests (T029-T032) can run in parallel
-- Within US4: all command tests (T034-T039) can run in parallel
+- Within US3: all extraction tests (T023-T029) and all robots tests (T032-T035) and ingestion tests (T030-T031) can run in parallel
+- Within US4: all command tests (T037-T044) can run in parallel
 
 ---
 
@@ -179,17 +193,30 @@ Task: "T018 [P] [US2] Add change log append test in src-tauri/src/storage/change
 Task: "T022 [US2] Run cargo test for regression check"
 ```
 
+## Parallel Example: User Story 4
+
+```bash
+# Launch all command tests in parallel:
+Task: "T037 [P] [US4] Storage save command test in storage/commands.rs"
+Task: "T040 [P] [US4] URL validation command test in url_ingestion/commands.rs"
+Task: "T042 [P] [US4] Robots compliance command test in robots_compliance/commands.rs"
+Task: "T043 [P] [US4] Recipe tagging command test in recipe_tagging/commands.rs"
+
+# After all complete, run regression:
+Task: "T045 [US4] Run cargo test for regression check"
+```
+
 ## Parallel Example: User Story 3
 
 ```bash
 # Launch all extraction edge cases and robots edge cases in parallel:
 Task: "T023 [P] [US3] Missing prep time test in json_ld.rs"
 Task: "T024 [P] [US3] Missing nutrition test in json_ld.rs"
-Task: "T029 [P] [US3] Empty robots.txt test in checker.rs"
-Task: "T030 [P] [US3] Disallowed path test in checker.rs"
+Task: "T030 [P] [US3] Oversized response test in fetcher.rs"
+Task: "T032 [P] [US3] Empty robots.txt test in checker.rs"
 
 # After all complete, run regression:
-Task: "T033 [US3] Run cargo test for regression check"
+Task: "T036 [US3] Run cargo test for regression check"
 ```
 
 ---
@@ -208,7 +235,7 @@ Task: "T033 [US3] Run cargo test for regression check"
 
 1. Setup + US1 + US2 → Critical coverage gaps filled (MVP)
 2. Add US3 → All spec scenarios covered (SC-001)
-3. Add US4 → Command layer verified (SC-005 via FR-006)
+3. Add US4 → Command layer verified (FR-006)
 4. Polish → Formatting, clippy, coverage matrix updated
 
 ---
@@ -220,4 +247,5 @@ Task: "T033 [US3] Run cargo test for regression check"
 - Each user story is independently completable and testable
 - Commit after each phase completion
 - All tests use in-memory databases or fixture files — no network access
-- Total new tests: ~38 (7 integration + 8 backup/changelog + 10 boundary + 6 command + regression checks)
+- Total new tests: ~45 (7 integration + 8 backup/changelog + 13 boundary + 8 command + regression checks)
+- FR-005 "concurrent operations": Deferred — existing `atomic_transaction_safety` test in repository.rs already validates SQLite transaction isolation; additional concurrency tests would require async test harness complexity for low incremental value

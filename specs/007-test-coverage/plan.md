@@ -17,7 +17,7 @@ Add comprehensive automated tests aligned with specs 001-006. Fill coverage gaps
 **Project Type**: Single Tauri application with Rust backend
 **Performance Goals**: Full test suite completes in under 60 seconds
 **Constraints**: No network access for tests (fixture data only), isolated temp databases per test
-**Scale/Scope**: 163 existing tests across 20 files; adding ~80-100 new tests across 5 modules + integration tests
+**Scale/Scope**: 163 existing tests across 20 files; adding ~45 new tests across 5 modules + integration tests
 
 ## Constitution Check
 
@@ -61,13 +61,11 @@ src-tauri/src/
 │   ├── json_ld.rs           # Add missing edge case tests
 │   └── microdata.rs         # Add missing edge case tests
 ├── recipe_tagging/
-│   └── commands.rs          # Add missing boundary tests
+│   └── commands.rs          # Add command wrapper tests
 └── lib.rs                   # (no changes — integration tests go in tests/)
 
 src-tauri/tests/
-└── integration/
-    ├── mod.rs               # Integration test module
-    └── pipeline_test.rs     # End-to-end pipeline tests with fixture data
+├── pipeline_test.rs         # End-to-end pipeline tests with fixture data
 
 src-tauri/tests/fixtures/
 ├── jsonld_recipe.html       # Valid JSON-LD recipe page
