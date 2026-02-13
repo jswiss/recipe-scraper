@@ -1,10 +1,12 @@
 pub mod recipe_extraction;
 pub mod recipe_tagging;
+pub mod robots_compliance;
 pub mod storage;
 pub mod url_ingestion;
 
 use recipe_extraction::extract_recipe;
 use recipe_tagging::{extract_and_tag, tag_recipe};
+use robots_compliance::check_robots_compliance;
 use storage::commands::{
     backup_collection, delete_recipe, export_recipes, get_recipe, get_sync_status, import_recipes,
     list_recipes, restore_collection, save_recipe, search_recipes, trigger_sync, update_recipe,
@@ -34,11 +36,21 @@ pub fn run() {
                 .app_data_dir()
                 .expect("Failed to resolve app data directory");
             let db = storage::Database::new(&app_data_dir).expect("Failed to initialize database");
+
+            // Prune stale robots.txt cache entries (older than 7 days)
+            if let Ok(conn) = db.conn.lock() {
+                let _ = conn.execute(
+                    "DELETE FROM robots_cache WHERE fetched_at < datetime('now', '-7 days')",
+                    [],
+                );
+            }
+
             app.manage(db);
 
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            check_robots_compliance,
             ingest_url,
             validate_url,
             extract_recipe,

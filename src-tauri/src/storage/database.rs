@@ -5,7 +5,10 @@ use rusqlite::Connection;
 
 use super::models::StorageError;
 
-const MIGRATIONS: &[&str] = &[include_str!("migrations/001_initial.sql")];
+const MIGRATIONS: &[&str] = &[
+    include_str!("migrations/001_initial.sql"),
+    include_str!("migrations/002_robots_cache.sql"),
+];
 
 pub struct Database {
     pub(crate) conn: Mutex<Connection>,
