@@ -76,10 +76,10 @@
 
 ### Implementation for User Story 3
 
-- [ ] T016 [US3] Refine HTTP status handling in `fetch_robots_txt()` in `src-tauri/src/robots_compliance/checker.rs` — ensure 404/410 returns status "not_found", 5xx returns "unreachable", empty body returns "ok" with empty content, oversized (>500KB) returns "oversized"
-- [ ] T017 [US3] Map fetch statuses to correct decisions in `check_compliance()` in `src-tauri/src/robots_compliance/checker.rs` — "not_found" → allowed (RFC 9309), "unreachable" → disallowed, "oversized" → allowed, empty content → allowed, with appropriate reason strings per contracts
-- [ ] T018 [US3] Implement stale cache fallback in `get_or_fetch_robots()` in `src-tauri/src/robots_compliance/checker.rs` — if cache is expired and re-fetch fails, use stale cached entry with reason suffix "(stale cache)" and `source: Cached`
-- [ ] T019 [US3] Run `cargo test` and `cargo clippy` to verify US3 edge cases
+- [x] T016 [US3] Refine HTTP status handling in `fetch_robots_txt()` in `src-tauri/src/robots_compliance/checker.rs` — ensure 404/410 returns status "not_found", 5xx returns "unreachable", empty body returns "ok" with empty content, oversized (>500KB) returns "oversized"
+- [x] T017 [US3] Map fetch statuses to correct decisions in `check_compliance()` in `src-tauri/src/robots_compliance/checker.rs` — "not_found" → allowed (RFC 9309), "unreachable" → disallowed, "oversized" → allowed, empty content → allowed, with appropriate reason strings per contracts
+- [x] T018 [US3] Implement stale cache fallback in `get_or_fetch_robots()` in `src-tauri/src/robots_compliance/checker.rs` — if cache is expired and re-fetch fails, use stale cached entry with reason suffix "(stale cache)" and `source: Cached`
+- [x] T019 [US3] Run `cargo test` and `cargo clippy` to verify US3 edge cases
 
 **Checkpoint**: All robots.txt availability scenarios handled correctly. Offline users with cached data get decisions.
 
